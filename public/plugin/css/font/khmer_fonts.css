@@ -1,0 +1,24 @@
+﻿/* ----------- FONT ---------------------------- */
+
+
+@font-face {
+    font-family: 'KhmerOSMoul';
+    src: url(KhmerOSMoul.ttf) format('truetype');
+}
+
+@font-face {
+    font-family: "KhmerOSbattambang";
+    src: url(KhmerOSbattambang.ttf) format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "KhmerOScontent";
+    src: url(KhmerOSContent.ttf) format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+
