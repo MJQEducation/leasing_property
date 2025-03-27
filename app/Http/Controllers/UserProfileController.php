@@ -26,7 +26,35 @@ class UserProfileController extends Controller
             return View('social.unauthorized');
         }
 
-        return View('users_profile.index');
+        $data = DB::select('
+        SELECT abbreviation, MIN(name_en) as name_en, COUNT(abbreviation) as abbreviation_count
+        FROM mainvaluelists
+        GROUP BY abbreviation
+        ORDER BY abbreviation;
+    ');
+
+    $GraphData = DB::select("
+        SELECT
+            -- Retail LeaseOut and Retail Available for SM, RC, AFC, SS, OSR
+            COUNT(CASE WHEN value != '0' AND abbreviation IN ('SM', 'RC', 'AFC', 'SS', 'OSR') THEN abbreviation END) AS \"Retail_LeaseOut\",
+            COUNT(CASE WHEN value = '0' AND abbreviation IN ('SM', 'RC', 'AFC', 'SS', 'OSR') THEN abbreviation END) AS \"Retail_Available\",
+
+            -- MJQE PLAZA LeaseOut and Land Available for land
+            COUNT(CASE WHEN value != '0' AND abbreviation = 'mjq' THEN abbreviation END) AS \"MJQE_PLAZA_LeaseOut\",
+            COUNT(CASE WHEN value = '0' AND abbreviation = 'mjq' THEN abbreviation END) AS \"MJQE_PLAZA_Available\",
+
+            -- Land LeaseOut and Land Available for land
+            COUNT(CASE WHEN value != '0' AND abbreviation = 'land' THEN abbreviation END) AS \"Land_LeaseOut\",
+            COUNT(CASE WHEN value = '0' AND abbreviation = 'land' THEN abbreviation END) AS \"Land_Available\",
+
+            -- Building LeaseOut and Land Available for land
+            COUNT(CASE WHEN value != '0' AND abbreviation = 'bu' THEN abbreviation END) AS \"Building_LeaseOut\",
+            COUNT(CASE WHEN value = '0' AND abbreviation = 'bu' THEN abbreviation END) AS \"Building_Available\"
+        FROM mainvaluelists;
+    ");
+
+
+        return View('users_profile.index',compact('data','GraphData'));
     }
 
     public function getMyInfo()

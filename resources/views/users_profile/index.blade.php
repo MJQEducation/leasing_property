@@ -1,54 +1,29 @@
-{{-- <div class="row">
-    <div class="col-sm-6 col-xl-3">
-        <div class="p-3 bg-primary-300 rounded overflow-hidden position-relative text-white mb-g">
-            <div class="">
-                <h3 class="display-4 d-block l-h-n m-0 fw-500">
-                    <span id='panelTotalAsset'>0</span>
-                    <small class="m-0 l-h-n">TOTAL ASSETS</small>
-                </h3>
-            </div>
-            <i class="fas fa-car-building position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1"
-                style="font-size:6rem"></i>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="p-3 bg-warning-400 rounded overflow-hidden position-relative text-white mb-g">
-            <div class="">
-                <h3 class="display-4 d-block l-h-n m-0 fw-500">
-                    <span id='panelTotalCheck'>0</span>
-                    <small class="m-0 l-h-n">END OF USFULL LIFE</small>
-                </h3>
-            </div>
-            <i class="fas fa-abacus position-absolute pos-right pos-bottom opacity-15  mb-n1 mr-n1"
-                style="font-size: 6rem;"></i>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="p-3 bg-success-200 rounded overflow-hidden position-relative text-white mb-g">
-            <div class="">
-                <h3 class="display-4 d-block l-h-n m-0 fw-500">
-                    <span id='panelTotalVerify'>0</span>
-                    <small class="m-0 l-h-n">TOTAL RESIDUAL VALUE</small>
-                </h3>
-            </div>
 
-            <i class="fas fa-lightbulb-dollar position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1"
-                style="font-size: 6rem;"></i>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="p-3 bg-danger-200 rounded overflow-hidden position-relative text-white mb-g">
-            <div class="">
-                <h3 class="display-4 d-block l-h-n m-0 fw-500">
-                    <span id='panelTotalApprove'>0</span>
-                    <small class="m-0 l-h-n">READY FOR DISPOSAL</small>
-                </h3>
+<div class="row">
+    @foreach($data as $item)
+    <div class="col-lg-4 mb-4">
+        <a href="{{ route('abbreviation.index', ['abbreviation' => $item->abbreviation]) }}" class="card-link">
+            <div class="card bg-primary text-light shadow-sm rounded p-4">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <p class="font-weight-bold text-light mb-1" style="font-size: 1.25rem;">
+                        {{ $item->name_en }}
+                    </p>
+                    <h4 class="font-weight-bold text-dark-75 mb-1">
+                        <span class="badge badge-light">{{ $item->abbreviation_count }}</span>
+                    </h4>
+                </div>
             </div>
-            <i class="fas fa-trash position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n2"
-                style="font-size: 6rem;"></i>
-        </div>
+        </a>
     </div>
-</div> --}}
+    @endforeach
+</div>
+
+
+
+<canvas id="barChart" width="400" height="100"></canvas>
+
+
+
 <div class="row">
     <div class="col-xl-12">
         <div id="panel-1" class="panel">
@@ -242,8 +217,72 @@
 @include('users_profile/signatorImgCrop')
 
 <script src="{{ asset('plugin/js/xlsx.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+       const graphData = @json($GraphData);
+
+var Retail_LeaseOut=parseInt(JSON.stringify(graphData[0].Retail_LeaseOut, null, 2));
+var Retail_Available=parseInt(JSON.stringify(graphData[0].Retail_Available, null, 2));
+var Retail_Totall=Retail_LeaseOut+Retail_Available;
+
+var MJQE_PLAZA_LeaseOut=parseInt(JSON.stringify(graphData[0].MJQE_PLAZA_LeaseOut, null, 2));
+var MJQE_PLAZA_Available=parseInt(JSON.stringify(graphData[0].MJQE_PLAZA_Available, null, 2));
+var MJQE_PLAZA_Totall=MJQE_PLAZA_LeaseOut+MJQE_PLAZA_Available;
+
+var Land_LeaseOut=parseInt(JSON.stringify(graphData[0].Land_LeaseOut, null, 2));
+var Land_Available=parseInt(JSON.stringify(graphData[0].Land_Available, null, 2));
+var Land_Totall=Land_LeaseOut+Land_Available;
+
+var Building_LeaseOut=parseInt(JSON.stringify(graphData[0].Building_LeaseOut, null, 2));
+var Building_Available=parseInt(JSON.stringify(graphData[0].Building_Available, null, 2));
+var Building_Totall=Building_LeaseOut+Building_Available;
+
+
+ const ctx = document.getElementById('barChart').getContext('2d');
+
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Retail F&B', 'MJQE Plaza', 'Land', 'Building'],
+        datasets: [
+            {
+                label: 'Total',
+                data: [Retail_Totall, MJQE_PLAZA_Totall, Land_Totall, Building_Totall],
+                backgroundColor: '#4472c4'
+            },
+            {
+                label: 'Lease Out',
+                data: [Retail_LeaseOut, MJQE_PLAZA_LeaseOut, Land_LeaseOut, Building_LeaseOut],
+                backgroundColor: '#00b050'
+            },
+            {
+                label: 'Available',
+                data: [Retail_Available, MJQE_PLAZA_Available, Land_Available, Building_Available],
+                backgroundColor: '#ffc000'
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            },
+            x: {
+                stacked: false
+            }
+        }
+    }
+});
+
+
     var exitClearanceList = "";
 
     $(document).ready(function() {
@@ -358,11 +397,11 @@
     var assignFilter = (event) => {
         let filterSelect = event.target.value;
 
-        if (filterSelect === "All Request") {
-            initExitClearanceList("getExitClearanceAllList");
-        } else {
-            initExitClearanceList("getExitClearanceRelateList");
-        }
+        // if (filterSelect === "All Request") {
+        //     initExitClearanceList("getExitClearanceAllList");
+        // } else {
+        //     initExitClearanceList("getExitClearanceRelateList");
+        // }
 
     }
 
@@ -535,3 +574,4 @@
         unblockagePage();
     }
 </script>
+

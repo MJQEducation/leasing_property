@@ -4,6 +4,8 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ExitClearanceController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\AbbreviationController;
+
 use App\Http\Controllers\MainvaluelistController;
 use App\Http\Controllers\PushExitController;
 use App\Http\Controllers\SocialController;
@@ -62,6 +64,10 @@ Route::group(['middleware' => ['web']], function () {
     Route::Post('/social/getCheckerForm', [SocialController::class, 'getCheckerForm']);
     Route::Post('/social/getApprovalForm', [SocialController::class, 'getApprovalForm']);
     #endregion
+
+    Route::get('/abbreviation/{abbreviation}', [AbbreviationController::class, 'index'])->name('abbreviation.index');
+
+    Route::get('/abbreviation/show/{abbreviation}', [AbbreviationController::class, 'show'])->name('abbreviation.show');
 
     #region push to other url
     Route::get('/pushexit/index', [PushExitController::class, 'index']);
