@@ -17,7 +17,7 @@ class Store extends Model
     protected $fillable = [
         'store_code',
         'campus',
-        'locations',
+        'location',
         'status',
         'abbreviation',
         'name_kh',

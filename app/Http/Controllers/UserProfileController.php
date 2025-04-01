@@ -27,11 +27,25 @@ class UserProfileController extends Controller
         }
 
         $data = DB::select('
-        SELECT abbreviation, MIN(name_en) as name_en, COUNT(abbreviation) as abbreviation_count
-        FROM stores
-        GROUP BY abbreviation
-        ORDER BY abbreviation;
-        ');
+        SELECT s.abbreviation,
+        MIN(s.name_en) AS name_en,
+        COUNT(s.abbreviation) AS abbreviation_count
+        FROM stores AS s
+        WHERE s.status = true
+        AND s.abbreviation != \'sub\'
+        GROUP BY s.abbreviation
+ 
+    
+        UNION
+    
+        SELECT \'sub\' AS abbreviation,
+               \'RETAIL F&B\' AS name_en,
+               COUNT(id) AS abbreviation_count
+        FROM substore
+        WHERE status = true;
+    ');
+    
+
 
         $GraphData = DB::select("
         SELECT
@@ -79,7 +93,7 @@ class UserProfileController extends Controller
         JOIN
             contracts AS c ON c.store_code = s.store_code;
             ");
-
+  
             
         return View('users_profile.index',compact('data','GraphData','FBGraph'));
     }

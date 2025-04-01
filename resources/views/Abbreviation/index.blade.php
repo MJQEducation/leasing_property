@@ -41,15 +41,16 @@
                 { "data": "abbreviation" },
                 { "data": "name_kh" },
                 { "data": "status" },
-                { "data": "locations" },
+                { "data": "location" },
                 { "data": "campus" },
-            
             ],
             "order": [[1, 'asc']],
             "searchDelay": 500,
             "stateSave": true,
-            "responsive": true
+            "responsive": true,
+            "pageLength": 10  // Ensure pagination shows 10 records per page
         });
     });
 </script>
+
 @endsection

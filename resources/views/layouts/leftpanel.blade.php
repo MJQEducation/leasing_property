@@ -287,7 +287,6 @@ function viewUser() {
     }
 
     function viewIndex(url) {
-        alert("THE GAME IS START");
         $.ajax({
             url: url,
             type: "GET",
@@ -295,7 +294,6 @@ function viewUser() {
                 blockagePage("Loading...");
             },
             success: function(response) {
-                alert(response);
                 $('#containerDiv').html(response);
                 unblockagePage();
             },

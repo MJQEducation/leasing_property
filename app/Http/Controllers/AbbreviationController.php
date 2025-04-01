@@ -20,44 +20,62 @@ use Illuminate\Support\Facades\Storage;
 class AbbreviationController extends Controller
 {
     public function show(Request $request)
-{
-    $abbreviation = $request->route('abbreviation');    
-    $query = DB::table('stores')->where('abbreviation', $abbreviation);
-
-    // 🔍 Apply search filter if a search term exists
-    if (!empty($request->input('search.value'))) {
-        $search = $request->input('search.value');
-        $query->where(function ($q) use ($search) {
-            $q->where('store_code', 'LIKE', "%{$search}%")
-              ->orWhere('name_en', 'LIKE', "%{$search}%")
-              ->orWhere('name_kh', 'LIKE', "%{$search}%")
-              ->orWhere('status', 'LIKE', "%{$search}%");
-        });
+    {
+        $abbreviation = $request->route('abbreviation');    
+    
+        if ($abbreviation == 'sub') {
+            $query = DB::table('substore')->where('status', 1);
+        } else {
+            $query = DB::table('stores')->where('status', 1)->where('abbreviation', $abbreviation);
+        }
+    
+        if (!empty($request->input('search.value'))) {
+            $search = $request->input('search.value');
+            $query->where(function ($q) use ($search) {
+                $q->where('store_code', 'LIKE', "%{$search}%")
+                  ->orWhere('name_en', 'LIKE', "%{$search}%")
+                  ->orWhere('name_kh', 'LIKE', "%{$search}%")
+                  ->orWhere('status', 'LIKE', "%{$search}%");
+            });
+        }
+    
+        $totalRecordsFiltered = $query->count();
+    
+        $perPage = $request->input('length', 10);  
+        $start = $request->input('start', 0);  
+    
+        $columnIndex = $request->input('order.0.column');
+        $columnDirection = $request->input('order.0.dir');
+        $columnName = $request->input('columns.' . $columnIndex . '.data', 'name_en');
+        if (!in_array($columnDirection, ['asc', 'desc'])) {
+            $columnDirection = 'asc';
+        }
+    
+        $query = $query->orderBy($columnName, $columnDirection)
+                       ->skip($start)
+                       ->take($perPage);
+    
+        $data = $query->get();
+    
+        if ($abbreviation == 'sub') {
+            $totalRecords = DB::table('substore')->where('status', 1)->count();  
+        } else {
+            $totalRecords = DB::table('stores')->where('status', 1)->where('abbreviation', $abbreviation)->count();  
+        }
+    
+        return response()->json([
+            'draw' => intval($request->input('draw')),
+            'recordsTotal' => $totalRecords,  
+            'recordsFiltered' => $totalRecordsFiltered, 
+            'data' => $data,  
+        ]);
     }
+    
 
-    $totalRecords = $query->count(); // Count after filtering
 
-    // Sorting
-    $columnIndex = $request->input('order.0.column');
-    $columnDirection = $request->input('order.0.dir'); 
-    $columnName = $request->input('columns.' . $columnIndex . '.data', 'name_en');
-    if (!in_array($columnDirection, ['asc', 'desc'])) {
-        $columnDirection = 'asc'; 
-    }
 
-    // Pagination
-    $data = $query->orderBy($columnName, $columnDirection)
-                  ->skip($request->input('start'))
-                  ->take($request->input('length'))
-                  ->get();
 
-    return response()->json([
-        'draw' => intval($request->input('draw')),
-        'recordsTotal' => DB::table('stores')->where('abbreviation', $abbreviation)->count(), // Total without filters
-        'recordsFiltered' => $totalRecords, // Filtered count
-        'data' => $data,
-    ]);
-}
+    
 
     
     public function index()
