@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 class UserProfileController extends Controller
 {
     public function index()
-    {
+    {   
         if (session()->has('AuthToken') == false) {
             return redirect('login');
         }
@@ -28,33 +28,60 @@ class UserProfileController extends Controller
 
         $data = DB::select('
         SELECT abbreviation, MIN(name_en) as name_en, COUNT(abbreviation) as abbreviation_count
-        FROM mainvaluelists
+        FROM stores
         GROUP BY abbreviation
         ORDER BY abbreviation;
-    ');
+        ');
 
-    $GraphData = DB::select("
+        $GraphData = DB::select("
         SELECT
-            -- Retail LeaseOut and Retail Available for SM, RC, AFC, SS, OSR
-            COUNT(CASE WHEN value != '0' AND abbreviation IN ('SM', 'RC', 'AFC', 'SS', 'OSR') THEN abbreviation END) AS \"Retail_LeaseOut\",
-            COUNT(CASE WHEN value = '0' AND abbreviation IN ('SM', 'RC', 'AFC', 'SS', 'OSR') THEN abbreviation END) AS \"Retail_Available\",
+            s.store_code,
+            c.monthly_fee,
 
-            -- MJQE PLAZA LeaseOut and Land Available for land
-            COUNT(CASE WHEN value != '0' AND abbreviation = 'mjq' THEN abbreviation END) AS \"MJQE_PLAZA_LeaseOut\",
-            COUNT(CASE WHEN value = '0' AND abbreviation = 'mjq' THEN abbreviation END) AS \"MJQE_PLAZA_Available\",
+            COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation IN ('SM', 'RC', 'AFC', 'SS', 'OSR') THEN s.abbreviation END) AS \"Retail_LeaseOut\",
+            COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation IN ('SM', 'RC', 'AFC', 'SS', 'OSR') THEN s.abbreviation END) AS \"Retail_Available\",
+            COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'mjq' THEN s.abbreviation END) AS \"MJQE_PLAZA_LeaseOut\",
+            COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'mjq' THEN s.abbreviation END) AS \"MJQE_PLAZA_Available\",
+            COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'land' THEN s.abbreviation END) AS \"Land_LeaseOut\",
+            COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'land' THEN s.abbreviation END) AS \"Land_Available\",
+            COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'bu' THEN s.abbreviation END) AS \"Building_LeaseOut\",
+            COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'bu' THEN s.abbreviation END) AS \"Building_Available\"
 
-            -- Land LeaseOut and Land Available for land
-            COUNT(CASE WHEN value != '0' AND abbreviation = 'land' THEN abbreviation END) AS \"Land_LeaseOut\",
-            COUNT(CASE WHEN value = '0' AND abbreviation = 'land' THEN abbreviation END) AS \"Land_Available\",
-
-            -- Building LeaseOut and Land Available for land
-            COUNT(CASE WHEN value != '0' AND abbreviation = 'bu' THEN abbreviation END) AS \"Building_LeaseOut\",
-            COUNT(CASE WHEN value = '0' AND abbreviation = 'bu' THEN abbreviation END) AS \"Building_Available\"
-        FROM mainvaluelists;
-    ");
+        FROM
+            stores AS s
+        JOIN
+            contracts AS c ON c.store_code = s.store_code
+        GROUP BY
+            s.store_code, c.monthly_fee;
+        ");
 
 
-        return View('users_profile.index',compact('data','GraphData'));
+
+
+        $FBGraph=DB::select("
+            SELECT
+        COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'SM' THEN s.abbreviation END) AS \"smls\",
+        COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'SM' THEN s.abbreviation END) AS \"sma\",
+
+        COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'RC' THEN s.abbreviation END) AS \"rcls\",
+        COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'RC' THEN s.abbreviation END) AS \"rca\",
+
+        COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'AFC' THEN s.abbreviation END) AS \"afcls\",
+        COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'AFC' THEN s.abbreviation END) AS \"afca\",
+
+        COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'SS' THEN s.abbreviation END) AS \"ssls\",
+        COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'SS' THEN s.abbreviation END) AS \"ssca\",
+
+        COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'OSR' THEN s.abbreviation END) AS \"osls\",
+        COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'OSR' THEN s.abbreviation END) AS \"osa\"
+        FROM
+            stores AS s
+        JOIN
+            contracts AS c ON c.store_code = s.store_code;
+            ");
+
+            
+        return View('users_profile.index',compact('data','GraphData','FBGraph'));
     }
 
     public function getMyInfo()

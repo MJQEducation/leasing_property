@@ -10,6 +10,9 @@
                     <th>Name (EN)</th>
                     <th>Abbreviation</th>
                     <th>Name (KH)</th>
+                    <th>Status</th>
+                    <th>Locations</th>
+                    <th>Campus</th>
                 </tr>
             </thead>
             <tbody>
@@ -29,15 +32,18 @@
                 "url": "{{ route('abbreviation.show', ['abbreviation' => request()->route('abbreviation')]) }}",
                 "type": "GET", 
                 "data": function(d) {
-                 
                     d._token = $('meta[name="csrf-token"]').attr('content'); 
                 }
             },
             "columns": [
-                { "data": "code" },
+                { "data": "store_code" },
                 { "data": "name_en" },
                 { "data": "abbreviation" },
-                { "data": "name_kh" }
+                { "data": "name_kh" },
+                { "data": "status" },
+                { "data": "locations" },
+                { "data": "campus" },
+            
             ],
             "order": [[1, 'asc']],
             "searchDelay": 500,

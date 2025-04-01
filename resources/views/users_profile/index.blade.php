@@ -18,9 +18,19 @@
     @endforeach
 </div>
 
+<div class="row">
+    <div class="col-xl-6">
+        <h2>Properties Graph</h2>
+        <canvas id="barChart" width="350" height="200"></canvas>
+    </div>
 
+    <div class="col-xl-6">
 
-<canvas id="barChart" width="400" height="100"></canvas>
+        <h2> RETAIL F&B Graph</h2>
+        <canvas id="F&barChart" width="350" height="200"></canvas>
+    </div>
+    
+</div>
 
 
 
@@ -220,6 +230,11 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+
+
+    $(document).ready(function() {
+        
+
        const graphData = @json($GraphData);
 
 var Retail_LeaseOut=parseInt(JSON.stringify(graphData[0].Retail_LeaseOut, null, 2));
@@ -239,7 +254,105 @@ var Building_Available=parseInt(JSON.stringify(graphData[0].Building_Available, 
 var Building_Totall=Building_LeaseOut+Building_Available;
 
 
- const ctx = document.getElementById('barChart').getContext('2d');
+
+
+const FBGraph = @json($FBGraph);
+
+var smls = parseInt(JSON.stringify(FBGraph[0].smls, null, 2));
+var sma = parseInt(JSON.stringify(FBGraph[0].sma, null, 2));
+var sm_Totall = smls + sma;
+
+var rcls = parseInt(JSON.stringify(FBGraph[0].rcls, null, 2));
+var rca = parseInt(JSON.stringify(FBGraph[0].rca, null, 2));
+var rc_PLAZA_Totall = rcls + rca;
+
+var afcls = parseInt(JSON.stringify(FBGraph[0].afcls, null, 2));
+var afca = parseInt(JSON.stringify(FBGraph[0].afca, null, 2));
+var af_Totall = afcls + afca;
+
+var ssls = parseInt(JSON.stringify(FBGraph[0].ssls, null, 2));
+var ssca = parseInt(JSON.stringify(FBGraph[0].ssca, null, 2));
+var ss_Totall = ssls + ssca;
+
+var osls = parseInt(JSON.stringify(FBGraph[0].osls, null, 2));
+var osa = parseInt(JSON.stringify(FBGraph[0].osa, null, 2));
+var os_Totall = osls + osa;
+
+const ctx = document.getElementById('barChart').getContext('2d');
+const FBctx = document.getElementById('F&barChart').getContext('2d');
+
+// URL paths corresponding to each label
+const urls = {
+    'Smart Mart': '/SM',
+    'Rooster Café': '/RC',
+    'Alex Food Court': '/AFC',
+    'Food Stand': '/SS',
+    'Other Space': '/OSR'
+};
+
+new Chart(FBctx, {
+    type: 'bar',
+    data: {
+        labels: ['Smart Mart', 'Rooster Café', 'Alex Food Court', 'Food Stand', 'Other Space'],
+        datasets: [
+            {
+                label: 'Total',
+                data: [sm_Totall, rc_PLAZA_Totall, af_Totall, ss_Totall, os_Totall],
+                backgroundColor: '#4472c4'
+            },
+            {
+                label: 'Lease Out',
+                data: [smls, rcls, afcls, ssls, osls],
+                backgroundColor: '#00b050'
+            },
+            {
+                label: 'Available',
+                data: [sma, rca, afca, ssca, osa],
+                backgroundColor: '#ffc000'
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            },
+            x: {
+                stacked: false
+            }
+        },
+        onClick: function (event, elements) {
+            if (elements.length > 0) {
+                const element = elements[0];
+
+                const index = element.index;
+
+                const label = this.data.labels[index];
+
+                console.log('Clicked label:', label);
+
+                if (label && urls[label]) {
+                    console.log('Redirecting to:', urls[label]); 
+                    window.location.href = urls[label];
+                } else {
+                    console.log('No URL found for:', label);
+                    alert('No URL found for: ' + label);
+                }
+            }
+        }
+    }
+});
+
+
+
+
 
 new Chart(ctx, {
     type: 'bar',
@@ -284,8 +397,6 @@ new Chart(ctx, {
 
 
     var exitClearanceList = "";
-
-    $(document).ready(function() {
         exitClearanceList = $("#exitClearanceList").html();
 
         $.fn.dataTable.moment('DD-MMM-YYYY HH:mm:ss');

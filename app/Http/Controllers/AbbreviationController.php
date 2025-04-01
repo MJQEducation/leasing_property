@@ -13,41 +13,52 @@ use App\Models\User;
 use Carbon\Carbon;
 use DateTimeZone;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB;  
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 class AbbreviationController extends Controller
 {
     public function show(Request $request)
-    {
-        $abbreviation = $request->route('abbreviation');
-        $totalRecords = DB::table('mainvaluelists')->where('abbreviation', $abbreviation)->count();
-        $columnIndex = $request->input('order.0.column');
-        $columnDirection = $request->input('order.0.dir'); 
-        $columnName = $request->input('columns.' . $columnIndex . '.data');
-        if (empty($columnName)) {
-            $columnName = 'name_en';
-        }
-        if (!in_array($columnDirection, ['asc', 'desc'])) {
-            $columnDirection = 'asc'; 
-        }
-        $data = DB::table('mainvaluelists')
-            ->where('abbreviation', $abbreviation)
-            ->orderBy($columnName, $columnDirection) 
-            ->skip($request->input('start'))
-            ->take($request->input('length'))
-            ->get();
+{
+    $abbreviation = $request->route('abbreviation');    
+    $query = DB::table('stores')->where('abbreviation', $abbreviation);
 
-    
-        
-        return response()->json([
-            'draw' => intval($request->input('draw')),
-            'recordsTotal' => $totalRecords,
-            'recordsFiltered' => $totalRecords,
-            'data' => $data
-        ]);
+    // 🔍 Apply search filter if a search term exists
+    if (!empty($request->input('search.value'))) {
+        $search = $request->input('search.value');
+        $query->where(function ($q) use ($search) {
+            $q->where('store_code', 'LIKE', "%{$search}%")
+              ->orWhere('name_en', 'LIKE', "%{$search}%")
+              ->orWhere('name_kh', 'LIKE', "%{$search}%")
+              ->orWhere('status', 'LIKE', "%{$search}%");
+        });
     }
+
+    $totalRecords = $query->count(); // Count after filtering
+
+    // Sorting
+    $columnIndex = $request->input('order.0.column');
+    $columnDirection = $request->input('order.0.dir'); 
+    $columnName = $request->input('columns.' . $columnIndex . '.data', 'name_en');
+    if (!in_array($columnDirection, ['asc', 'desc'])) {
+        $columnDirection = 'asc'; 
+    }
+
+    // Pagination
+    $data = $query->orderBy($columnName, $columnDirection)
+                  ->skip($request->input('start'))
+                  ->take($request->input('length'))
+                  ->get();
+
+    return response()->json([
+        'draw' => intval($request->input('draw')),
+        'recordsTotal' => DB::table('stores')->where('abbreviation', $abbreviation)->count(), // Total without filters
+        'recordsFiltered' => $totalRecords, // Filtered count
+        'data' => $data,
+    ]);
+}
+
     
     public function index()
     {

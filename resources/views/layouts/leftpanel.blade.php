@@ -4,7 +4,7 @@
             data-toggle="modal" data-target="#modal-shortcut">
             <img src="{{ asset('plugin/img/logo.png') }}" alt="AII Language Center" aria-roledescription="logo"
                 style="width:56px!important;height:28px!important;">
-            <span class="page-logo-text mr-1"> Online Exit Clearance</span>
+            <span class="page-logo-text mr-1"> Lease Property</span>
             <span class="position-absolute text-white opacity-50 small pos-top pos-right mr-2 mt-n2"></span>
             <i class="fal fa-angle-down d-inline-block ml-1 fs-lg color-primary-300"></i>
         </a>
@@ -168,14 +168,16 @@
     </div> <!-- END NAV FOOTER -->
 </aside>
 
+
 <script>
-    function PanelLinkActive(element) {
+
+function PanelLinkActive(element) {
+        
         var data = JSON.parse(element.getAttribute('data-filter-tags'));
         var panelList = document.getElementsByName('panelList');
         for (var i = 0; i < panelList.length; i++) {
             panelList[i].className = "";
         }
-
         if (data.anchor == 'single') {
             element.parentElement.classList.add("active");
         } else {
@@ -184,10 +186,7 @@
             element.parentElement.classList.add("active");
         }
     }
-</script>
-
-<script>
-    function viewUser() {
+function viewUser() {
         $.ajax({
             url: "{{ url('admin/viewUser') }}",
             type: "GET",
@@ -269,6 +268,7 @@
     }
 
     function viewDashboard() {
+        
         $.ajax({
             url: "{{ url('Dashboard/Index') }}",
             type: "GET",
@@ -287,6 +287,7 @@
     }
 
     function viewIndex(url) {
+        alert("THE GAME IS START");
         $.ajax({
             url: url,
             type: "GET",
@@ -294,6 +295,7 @@
                 blockagePage("Loading...");
             },
             success: function(response) {
+                alert(response);
                 $('#containerDiv').html(response);
                 unblockagePage();
             },
