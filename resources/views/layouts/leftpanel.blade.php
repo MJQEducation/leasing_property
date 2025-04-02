@@ -53,7 +53,7 @@
 
             <li name='panelList' data-access-to="Dashboard-Index">
                 <a href="javascript:void(0);" title="Home" data-filter-tags='{"anchor":"single","role":"parent"}'
-                    onclick="PanelLinkActive(this);viewIndex('{{ url('userprofile/Index') }}');">
+                    onclick="PanelLinkActive(this);viewIndex('{{ url('dashboard/index') }}');">
                     <i class="fal fa-home"></i>
                     <span class="nav-link-text">Dashboard</span>
                 </a>

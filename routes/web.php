@@ -54,6 +54,7 @@ Route::group(['middleware' => ['web']], function () {
     #endregion
 
     #region User Profile
+    Route::get('/dashboard/index', [UserProfileController::class, 'dashboard']);
     Route::get('/userprofile/Index', [UserProfileController::class, 'index']);
     #endregion
 

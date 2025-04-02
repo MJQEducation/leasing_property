@@ -48,7 +48,7 @@
             "searchDelay": 500,
             "stateSave": true,
             "responsive": true,
-            "pageLength": 10  // Ensure pagination shows 10 records per page
+            "pageLength": 10  
         });
     });
 </script>

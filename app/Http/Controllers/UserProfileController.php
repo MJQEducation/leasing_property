@@ -15,6 +15,93 @@ use Illuminate\Support\Facades\Storage;
 
 class UserProfileController extends Controller
 {
+    public function dashboard()
+    {   
+        if (session()->has('AuthToken') == false) {
+            return redirect('login');
+        }
+
+        if (!RBAC::isAccessible(str_replace('Controller', '', class_basename(Route::current()->controller)) . '-' . Route::getCurrentRoute()->getActionMethod())) {
+            //return redirect to authourized
+            return View('social.unauthorized');
+        }
+
+        $data = DB::select('
+        SELECT s.abbreviation,
+        MIN(s.name_en) AS name_en,
+        COUNT(s.abbreviation) AS abbreviation_count
+        FROM stores AS s
+        WHERE s.status = true
+        AND s.is_sub=false
+        AND s.abbreviation != \'sub\'
+        GROUP BY s.abbreviation
+ 
+    
+        UNION
+    
+        SELECT \'sub\' AS abbreviation,
+               \'RETAIL F&B\' AS name_en,
+               COUNT(id) AS abbreviation_count
+        FROM substore
+        WHERE status = true;
+    ');
+
+
+
+    $dataSubStore = DB::select('
+    SELECT ss.abbreviation,
+        MIN(ss.name_en) AS name_en,
+        COUNT(ss.abbreviation) AS abbreviation_count
+        FROM substore AS ss
+        WHERE ss.status = true
+        GROUP BY ss.abbreviation;
+    ');
+
+
+    $GraphData = DB::select("
+SELECT
+    COUNT(DISTINCT ss.id) AS Retail,
+    COUNT(DISTINCT c.store_code) AS Retail_LeaseOut,
+    (SELECT COUNT(*) FROM stores AS s WHERE s.abbreviation = 'bu' AND s.status = '1') AS Building,
+    (SELECT COUNT(*) FROM stores AS s JOIN contracts AS c ON c.store_code = s.store_code WHERE s.abbreviation = 'bu' AND s.status = '1') AS Building_Leaseout,
+    (SELECT COUNT(*) FROM stores AS s WHERE s.abbreviation = 'land' AND s.status = '1') AS Land,
+    (SELECT COUNT(*) FROM stores AS s JOIN contracts AS c ON c.store_code = s.store_code WHERE s.abbreviation = 'land' AND s.status = '1') AS Land_Leaseout,
+    (SELECT COUNT(*) FROM stores AS s WHERE s.abbreviation = 'mjq' AND s.status = '1') AS MJQ,
+    (SELECT COUNT(*) FROM stores AS s JOIN contracts AS c ON c.store_code = s.store_code WHERE s.abbreviation = 'mjq' AND s.status = '1') AS MJQ_Leaseout
+FROM substore AS ss
+LEFT JOIN contracts AS c ON c.store_code = ss.substore_code
+AND ss.status = '1';
+");
+
+
+
+
+
+
+    $FBGraph = DB::select("
+    SELECT
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'SM' THEN ss.id END) AS \"SmartMart\",
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'SM' AND c.store_code IS NOT NULL THEN c.store_code END) AS \"Retail_LeaseOut_SM\",
+
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'RC' THEN ss.id END) AS \"RC\",
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'RC' AND c.store_code IS NOT NULL THEN c.store_code END) AS \"Retail_LeaseOut_RC\",
+
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'AFC' THEN ss.id END) AS \"AFC\",
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'AFC' AND c.store_code IS NOT NULL THEN c.store_code END) AS \"Retail_LeaseOut_AFC\",
+
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'SS' THEN ss.id END) AS \"SS\",
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'SS' AND c.store_code IS NOT NULL THEN c.store_code END) AS \"Retail_LeaseOut_SS\",
+
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'OSR' THEN ss.id END) AS \"OSR\",
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'OSR' AND c.store_code IS NOT NULL THEN c.store_code END) AS \"Retail_LeaseOut_OSR\"
+    FROM substore AS ss
+    LEFT JOIN contracts AS c ON c.store_code = ss.substore_code
+    WHERE ss.status = '1';
+    ");
+
+            
+        return View('Dashboard.index',compact('data','dataSubStore','GraphData','FBGraph'));
+    }
     public function index()
     {   
         if (session()->has('AuthToken') == false) {
@@ -32,6 +119,7 @@ class UserProfileController extends Controller
         COUNT(s.abbreviation) AS abbreviation_count
         FROM stores AS s
         WHERE s.status = true
+        AND s.is_sub=false
         AND s.abbreviation != \'sub\'
         GROUP BY s.abbreviation
  
@@ -44,58 +132,62 @@ class UserProfileController extends Controller
         FROM substore
         WHERE status = true;
     ');
-    
-
-
-        $GraphData = DB::select("
-        SELECT
-            s.store_code,
-            c.monthly_fee,
-
-            COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation IN ('SM', 'RC', 'AFC', 'SS', 'OSR') THEN s.abbreviation END) AS \"Retail_LeaseOut\",
-            COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation IN ('SM', 'RC', 'AFC', 'SS', 'OSR') THEN s.abbreviation END) AS \"Retail_Available\",
-            COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'mjq' THEN s.abbreviation END) AS \"MJQE_PLAZA_LeaseOut\",
-            COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'mjq' THEN s.abbreviation END) AS \"MJQE_PLAZA_Available\",
-            COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'land' THEN s.abbreviation END) AS \"Land_LeaseOut\",
-            COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'land' THEN s.abbreviation END) AS \"Land_Available\",
-            COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'bu' THEN s.abbreviation END) AS \"Building_LeaseOut\",
-            COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'bu' THEN s.abbreviation END) AS \"Building_Available\"
-
-        FROM
-            stores AS s
-        JOIN
-            contracts AS c ON c.store_code = s.store_code
-        GROUP BY
-            s.store_code, c.monthly_fee;
-        ");
 
 
 
+    $dataSubStore = DB::select('
+    SELECT ss.abbreviation,
+        MIN(ss.name_en) AS name_en,
+        COUNT(ss.abbreviation) AS abbreviation_count
+        FROM substore AS ss
+        WHERE ss.status = true
+        GROUP BY ss.abbreviation;
+    ');
 
-        $FBGraph=DB::select("
-            SELECT
-        COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'SM' THEN s.abbreviation END) AS \"smls\",
-        COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'SM' THEN s.abbreviation END) AS \"sma\",
 
-        COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'RC' THEN s.abbreviation END) AS \"rcls\",
-        COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'RC' THEN s.abbreviation END) AS \"rca\",
+    $GraphData = DB::select("
+SELECT
+    COUNT(DISTINCT ss.id) AS Retail,
+    COUNT(DISTINCT c.store_code) AS Retail_LeaseOut,
+    (SELECT COUNT(*) FROM stores AS s WHERE s.abbreviation = 'bu' AND s.status = '1') AS Building,
+    (SELECT COUNT(*) FROM stores AS s JOIN contracts AS c ON c.store_code = s.store_code WHERE s.abbreviation = 'bu' AND s.status = '1') AS Building_Leaseout,
+    (SELECT COUNT(*) FROM stores AS s WHERE s.abbreviation = 'land' AND s.status = '1') AS Land,
+    (SELECT COUNT(*) FROM stores AS s JOIN contracts AS c ON c.store_code = s.store_code WHERE s.abbreviation = 'land' AND s.status = '1') AS Land_Leaseout,
+    (SELECT COUNT(*) FROM stores AS s WHERE s.abbreviation = 'mjq' AND s.status = '1') AS MJQ,
+    (SELECT COUNT(*) FROM stores AS s JOIN contracts AS c ON c.store_code = s.store_code WHERE s.abbreviation = 'mjq' AND s.status = '1') AS MJQ_Leaseout
+FROM substore AS ss
+LEFT JOIN contracts AS c ON c.store_code = ss.substore_code
+AND ss.status = '1';
+");
 
-        COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'AFC' THEN s.abbreviation END) AS \"afcls\",
-        COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'AFC' THEN s.abbreviation END) AS \"afca\",
 
-        COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'SS' THEN s.abbreviation END) AS \"ssls\",
-        COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'SS' THEN s.abbreviation END) AS \"ssca\",
 
-        COUNT(CASE WHEN c.monthly_fee != 0 AND s.abbreviation = 'OSR' THEN s.abbreviation END) AS \"osls\",
-        COUNT(CASE WHEN c.monthly_fee = 0 AND s.abbreviation = 'OSR' THEN s.abbreviation END) AS \"osa\"
-        FROM
-            stores AS s
-        JOIN
-            contracts AS c ON c.store_code = s.store_code;
-            ");
-  
+
+
+
+    $FBGraph = DB::select("
+    SELECT
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'SM' THEN ss.id END) AS \"SmartMart\",
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'SM' AND c.store_code IS NOT NULL THEN c.store_code END) AS \"Retail_LeaseOut_SM\",
+
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'RC' THEN ss.id END) AS \"RC\",
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'RC' AND c.store_code IS NOT NULL THEN c.store_code END) AS \"Retail_LeaseOut_RC\",
+
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'AFC' THEN ss.id END) AS \"AFC\",
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'AFC' AND c.store_code IS NOT NULL THEN c.store_code END) AS \"Retail_LeaseOut_AFC\",
+
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'SS' THEN ss.id END) AS \"SS\",
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'SS' AND c.store_code IS NOT NULL THEN c.store_code END) AS \"Retail_LeaseOut_SS\",
+
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'OSR' THEN ss.id END) AS \"OSR\",
+        COUNT(DISTINCT CASE WHEN ss.abbreviation = 'OSR' AND c.store_code IS NOT NULL THEN c.store_code END) AS \"Retail_LeaseOut_OSR\"
+    FROM substore AS ss
+    LEFT JOIN contracts AS c ON c.store_code = ss.substore_code
+    WHERE ss.status = '1';
+    ");
+
             
-        return View('users_profile.index',compact('data','GraphData','FBGraph'));
+        return View('users_profile.index',compact('data','dataSubStore','GraphData','FBGraph'));
     }
 
     public function getMyInfo()

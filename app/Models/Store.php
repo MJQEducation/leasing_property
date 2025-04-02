@@ -21,7 +21,8 @@ class Store extends Model
         'status',
         'abbreviation',
         'name_kh',
-        'name_en'
+        'name_en',
+        'is_sub'
 
     ];
 }
