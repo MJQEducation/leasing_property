@@ -163,6 +163,9 @@
         .modal {
             overflow: auto !important;
         }
+
+
+
     </style>
 
     <!-- You can add your own stylesheet here to override any styles that comes before it
@@ -443,8 +446,10 @@
     <script src="{{ asset('plugin/js/block-ui.js') }}"></script>
     <script src="{{ asset('plugin/js/misc_blockui.js') }}"></script>
     <script src="{{ asset('plugin/js/myapp.js') }}"></script>
-
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/easy-pie-chart/2.1.6/jquery.easypiechart.min.js"></script>    
     <!--for dashboard-->
+    
     <script src="{{ asset('plugin/js/miscellaneous/fullcalendar/fullcalendar.bundle.js') }}"></script>
     <script src="{{ asset('plugin/js/statistics/sparkline/sparkline.bundle.js') }}"></script>
     <script src="{{ asset('plugin/js/statistics/easypiechart/easypiechart.bundle.js') }}"></script>
