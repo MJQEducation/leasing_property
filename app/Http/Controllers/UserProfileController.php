@@ -59,20 +59,68 @@ class UserProfileController extends Controller
 
 
     $GraphData = DB::select("
-SELECT
-    COUNT(DISTINCT ss.id) AS Retail,
-    COUNT(DISTINCT c.store_code) AS Retail_LeaseOut,
-    (SELECT COUNT(*) FROM stores AS s WHERE s.abbreviation = 'bu' AND s.status = '1') AS Building,
-    (SELECT COUNT(*) FROM stores AS s JOIN contracts AS c ON c.store_code = s.store_code WHERE s.abbreviation = 'bu' AND s.status = '1') AS Building_Leaseout,
-    (SELECT COUNT(*) FROM stores AS s WHERE s.abbreviation = 'land' AND s.status = '1') AS Land,
-    (SELECT COUNT(*) FROM stores AS s JOIN contracts AS c ON c.store_code = s.store_code WHERE s.abbreviation = 'land' AND s.status = '1') AS Land_Leaseout,
-    (SELECT COUNT(*) FROM stores AS s WHERE s.abbreviation = 'mjq' AND s.status = '1') AS MJQ,
-    (SELECT COUNT(*) FROM stores AS s JOIN contracts AS c ON c.store_code = s.store_code WHERE s.abbreviation = 'mjq' AND s.status = '1') AS MJQ_Leaseout
-FROM substore AS ss
-LEFT JOIN contracts AS c ON c.store_code = ss.substore_code
-AND ss.status = '1';
-");
+    SELECT
+        COUNT(DISTINCT ss.id) AS Retail,
+        COUNT(DISTINCT c.store_code) AS Retail_LeaseOut,
 
+        -- Retail Amount Paid
+        COALESCE(
+            (SELECT SUM(payments.amount_paid)
+             FROM payments
+             JOIN public.leasings l ON l.id = payments.leasing_id
+             LEFT JOIN public.stores s ON l.store_code = s.store_code
+             WHERE s.abbreviation IS NULL), 0
+        ) AS Retail_amount_paid,
+
+        -- Building Counts & Amount Paid
+        (SELECT COUNT(*) FROM stores AS s WHERE s.abbreviation = 'bu' AND s.status = '1') AS Building,
+        (SELECT COUNT(*) FROM stores AS s 
+         JOIN contracts AS c ON c.store_code = s.store_code 
+         WHERE s.abbreviation = 'bu' AND s.status = '1') AS Building_Leaseout,
+        COALESCE(
+            (SELECT SUM(p.amount_paid) 
+             FROM payments AS p
+             JOIN leasings AS l ON l.id = p.leasing_id
+             JOIN contracts AS c ON c.id = l.contract_id
+             LEFT JOIN stores AS s ON s.store_code = c.store_code
+             LEFT JOIN substore AS ss ON ss.substore_code = c.store_code
+             WHERE COALESCE(s.abbreviation, ss.abbreviation) = 'SM'), 0
+        ) AS Building_amount_paid,
+
+        -- Land Counts & Amount Paid
+        (SELECT COUNT(*) FROM stores AS s WHERE s.abbreviation = 'land' AND s.status = '1') AS Land,
+        (SELECT COUNT(*) FROM stores AS s 
+         JOIN contracts AS c ON c.store_code = s.store_code 
+         WHERE s.abbreviation = 'land' AND s.status = '1') AS Land_Leaseout,
+        COALESCE(
+            (SELECT SUM(p.amount_paid) 
+             FROM payments AS p
+             JOIN leasings AS l ON l.id = p.leasing_id
+             JOIN contracts AS c ON c.id = l.contract_id
+             LEFT JOIN stores AS s ON s.store_code = c.store_code
+             LEFT JOIN substore AS ss ON ss.substore_code = c.store_code
+             WHERE COALESCE(s.abbreviation, ss.abbreviation) = 'land'), 0
+        ) AS Land_amount_paid,
+
+        -- MJQ Counts & Amount Paid
+        (SELECT COUNT(*) FROM stores AS s WHERE s.abbreviation = 'mjq' AND s.status = '1') AS MJQ,
+        (SELECT COUNT(*) FROM stores AS s 
+         JOIN contracts AS c ON c.store_code = s.store_code 
+         WHERE s.abbreviation = 'mjq' AND s.status = '1') AS MJQ_Leaseout,
+        COALESCE(
+            (SELECT SUM(p.amount_paid) 
+             FROM payments AS p
+             JOIN leasings AS l ON l.id = p.leasing_id
+             JOIN contracts AS c ON c.id = l.contract_id
+             LEFT JOIN stores AS s ON s.store_code = c.store_code
+             LEFT JOIN substore AS ss ON ss.substore_code = c.store_code
+             WHERE COALESCE(s.abbreviation, ss.abbreviation) = 'mjq'), 0
+        ) AS MJQ_amount_paid
+
+    FROM substore AS ss
+    LEFT JOIN contracts AS c ON c.store_code = ss.substore_code
+    WHERE ss.status = '1';
+");
 
 
 
@@ -99,8 +147,77 @@ AND ss.status = '1';
     WHERE ss.status = '1';
     ");
 
-            
-        return View('Dashboard.index',compact('data','dataSubStore','GraphData','FBGraph'));
+    $totalCustomerResult = DB::select("SELECT COUNT(id) AS totalCustomer FROM customers");
+
+    $totalCustomer = $totalCustomerResult[0]->totalcustomer ?? 0;    ; 
+
+
+    $revenueResult = DB::select("SELECT SUM(p.final_charge) AS totalRevenue FROM payments p");
+    $revenue = $revenueResult[0]->totalrevenue ?? 0; 
+
+    $avgRevenueResult = DB::select("
+        SELECT
+        CASE
+        WHEN last_month.total_payment = 0 OR last_month.total_payment IS NULL
+        THEN NULL
+        ELSE ROUND(((this_month.total_payment - last_month.total_payment) / last_month.total_payment) * 100, 2)
+        END || '%' AS percentage_change
+        FROM
+        (SELECT SUM(final_charge) AS total_payment
+         FROM payments
+         WHERE DATE_TRUNC('month', payment_date) = DATE_TRUNC('month', CURRENT_DATE)) AS this_month,
+
+        (SELECT SUM(final_charge) AS total_payment
+         FROM payments
+         WHERE DATE_TRUNC('month', payment_date) = DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')) AS last_month;
+    ");
+
+    $avgRevenuetolastmonth = $avgRevenueResult[0]->percentage_change ?? '0%'; // Extract value or fallback to '0%'
+
+
+    $totalPropResult = DB::select("
+        SELECT 
+        (SELECT COUNT(DISTINCT abbreviation) FROM stores WHERE is_sub = false) +
+        (SELECT COUNT(DISTINCT abbreviation) FROM substore)
+        AS totalProperty
+    ");
+    $totalProp = $totalPropResult[0]->totalproperty ?? 0;
+
+    $thismonth = DB::select("
+    SELECT SUM(final_charge) AS total_payment
+    FROM payments
+    WHERE DATE_TRUNC('month', payment_date) = DATE_TRUNC('month', CURRENT_DATE)
+");
+
+$thismonthrevenue = $thismonth[0]->total_payment ?? 0;
+
+
+
+    $lastmonth=DB::select("
+        SELECT SUM(final_charge) AS total_payment
+        FROM payments
+        WHERE DATE_TRUNC('month', payment_date) = DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')
+    ");
+        $lastmonthRevenue = $lastmonth[0]->total_payment ?? 0; 
+
+
+        
+    $profitprop = DB::select("
+        SELECT s.name_en AS store_name, p.payment_date, p.final_charge 
+        FROM payments p
+        LEFT JOIN leasings l ON l.id = p.leasing_id
+        INNER JOIN stores s ON l.store_code = s.store_code
+    
+        UNION
+    
+        SELECT s2.name_en AS store_name, p.payment_date, p.final_charge 
+        FROM payments p
+        LEFT JOIN leasings l ON l.id = p.leasing_id
+        INNER JOIN substore s2 ON l.store_code = s2.substore_code
+    ");
+
+
+        return View('Dashboard.index',compact('profitprop','thismonthrevenue','lastmonthRevenue','data','dataSubStore','GraphData','FBGraph','totalCustomer','revenue','avgRevenuetolastmonth','totalProp'));
     }
     public function index()
     {   

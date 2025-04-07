@@ -44,7 +44,7 @@ class Jobs implements ShouldQueue
         $checker_name = $this->exit_info->re_checker_name;
         $fullUrl = url('/');
         $dataMail = [
-            'subject' => 'Exit Clearance Notification',
+            'subject' => 'Lease Property Notification',
             'body' => "
                     <div style='color:#111111'>
                         <p style=\"font-family:'Trebuchet MS';\">Dear $checker_name, <br/> You have an initiation the exit process checklist for $exit_name.</p>

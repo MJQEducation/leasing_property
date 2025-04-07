@@ -13,6 +13,13 @@
                 <span class="hidden-sm-down ml-1">Exits Form</span>
             </a>
         </li>
+
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#tabContractForm" role="tab"">   
+                <i class="fas fa-file-contract text-info"></i>
+                <span class="hidden-sm-down ml-1">Contract</span>
+            </a>
+        </li>
     </ul>
 
     <div class="tab-content p-3">
@@ -20,6 +27,9 @@
             @include('exit_clearance.exit_clearance_list')
         </div>
         <div class="tab-pane fade" id="tabExitsForm" role="tabpanel">
+            @include('exit_clearance.exit_clearance_form')
+        </div>
+        <div class="tab-pane fade" id="tabContractForm" role="tabpanel">
             @include('exit_clearance.exit_clearance_form')
         </div>
     </div>
@@ -873,7 +883,7 @@
         }
 
         var removeExitClearance = async (id, name) => {
-            let result = await conditionSWAlert(`Do you want to remove exit clearance ${name}?`, 'question',
+            let result = await conditionSWAlert(`Do you want to remove Lease Property ${name}?`, 'question',
                 'Yes Remove!')
 
             if (!result) {

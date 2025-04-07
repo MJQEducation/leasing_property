@@ -54,7 +54,8 @@
             <li name='panelList' data-access-to="Dashboard-Index">
                 <a href="javascript:void(0);" title="Home" data-filter-tags='{"anchor":"single","role":"parent"}'
                     onclick="PanelLinkActive(this);viewIndex('{{ url('dashboard/index') }}');">
-                    <i class="fal fa-home"></i>
+                    <i class="fal fa-tachometer-alt"></i>
+
                     <span class="nav-link-text">Dashboard</span>
                 </a>
             </li>
@@ -63,7 +64,7 @@
             <li name='panelList' data-access-to="parent">
                 <a href="javascript:void(0);" title="Setting" data-filter-tags='{"anchor":"miltiple","role":"parent"}'>
                     <i class="fas fa-portal-exit"></i>
-                    <span class="nav-link-text">Exit Clearance</span>
+                    <span class="nav-link-text">Lease Property</span>
                 </a>
                 <ul>
                     <li name='panelList' data-access-to="ExitClearance-index">

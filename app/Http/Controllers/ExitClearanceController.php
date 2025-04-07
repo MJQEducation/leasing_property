@@ -329,7 +329,7 @@ class ExitClearanceController extends Controller
             dispatch(new Jobs($email)); // send object to Jobs
         }
 
-        return ['result' => 'success', 'msg' => $exitClearace->name . ' Exit Clearance have been save', 'data' => $exitClearace->id];
+        return ['result' => 'success', 'msg' => $exitClearace->name . ' Lease Property have been save', 'data' => $exitClearace->id];
     }
 
     public function updateExitClearance(Request $request)
@@ -340,7 +340,7 @@ class ExitClearanceController extends Controller
         }
         $today = Carbon::now(new DateTimeZone('Asia/Phnom_Penh'));
 
-        //return ['result' => 'success', 'msg' => "" . ' Exit Clearance have been update', 'data' => $request->bulletins];
+        //return ['result' => 'success', 'msg' => "" . ' Lease Property have been update', 'data' => $request->bulletins];
 
         $exitClearace = ExitClearance::find($request->id);
         $exitClearace->card_id = $request->card_id;
@@ -523,7 +523,7 @@ class ExitClearanceController extends Controller
             //SendMailHelper::sendMailNotification($email->re_email, ['subject' => 'subject', 'body' => 'body']);
         }
 
-        return ['result' => 'success', 'msg' => $exitClearace->name . ' Exit Clearance have been update', 'data' => $exitClearace->id];
+        return ['result' => 'success', 'msg' => $exitClearace->name . ' Lease Property have been update', 'data' => $exitClearace->id];
     }
 
     public function editExitClearance(Request $request)

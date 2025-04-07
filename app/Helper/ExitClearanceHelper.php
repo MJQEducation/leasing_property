@@ -69,7 +69,7 @@ class ExitClearanceHelper
         <head>
           <meta charset='UTF-8'>
           <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-          <title>Exit Clearance Form</title>
+          <title>Lease Property Form</title>
 
           <style>
             .text-right{
@@ -166,7 +166,7 @@ class ExitClearanceHelper
                         </tr>
                         <tr>
                             <td class='text-center item-e-h'>
-                                EXIT CLEARANCE FORM
+                                Lease Property FORM
                             </td>
                         </tr>
                     </table>
