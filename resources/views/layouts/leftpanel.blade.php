@@ -72,12 +72,14 @@
                             data-filter-tags='{"anchor":"miltiple","role":"child"}'
                             onclick="PanelLinkActive(this);viewIndex('{{ url('exitClearance/index') }}');"
                             class=" waves-effect waves-themed">
-                            <span class="nav-link-text">Exit Form</span>
+                            <span class="nav-link-text">Lease Form</span>
                         </a>
                     </li>
 
                 </ul>
             </li>
+
+            
 
             <li name='panelList' data-access-to="parent">
                 <a href="javascript:void(0);" title="Setting" data-filter-tags='{"anchor":"miltiple","role":"parent"}'>

@@ -203,21 +203,51 @@ $thismonthrevenue = $thismonth[0]->total_payment ?? 0;
 
         
     $profitprop = DB::select("
-        SELECT s.name_en AS store_name, p.payment_date, p.final_charge 
+        SELECT s.name_en AS store_name, p.payment_date, p.final_charge,p2.estimated_income
         FROM payments p
         LEFT JOIN leasings l ON l.id = p.leasing_id
         INNER JOIN stores s ON l.store_code = s.store_code
-    
+        join projection p2 on l.contract_id = p2.contract_id and p2.projection_date=l.alert_date
+
+
         UNION
-    
-        SELECT s2.name_en AS store_name, p.payment_date, p.final_charge 
+
+        SELECT s2.name_en AS store_name, p.payment_date, p.final_charge,p2.estimated_income
         FROM payments p
         LEFT JOIN leasings l ON l.id = p.leasing_id
         INNER JOIN substore s2 ON l.store_code = s2.substore_code
+        join projection p2 on l.contract_id = p2.contract_id and p2.projection_date=l.alert_date
+
     ");
 
+    $LastmonthEstimatedIncome = DB::select("
+        
+                SELECT s.name_en AS store_name, p.payment_date, p.final_charge,p2.estimated_income
+        FROM payments p
+        LEFT JOIN leasings l ON l.id = p.leasing_id
+        INNER JOIN stores s ON l.store_code = s.store_code
+        join projection p2 on l.contract_id = p2.contract_id and p2.projection_date=l.alert_date
+        WHERE p.payment_date >= date_trunc('month', current_date - interval '1' month)
+        AND p.payment_date < date_trunc('month', current_date)
 
-        return View('Dashboard.index',compact('profitprop','thismonthrevenue','lastmonthRevenue','data','dataSubStore','GraphData','FBGraph','totalCustomer','revenue','avgRevenuetolastmonth','totalProp'));
+
+        UNION
+
+        SELECT s2.name_en AS store_name, p.payment_date, p.final_charge,p2.estimated_income
+        FROM payments p
+        LEFT JOIN leasings l ON l.id = p.leasing_id
+        INNER JOIN substore s2 ON l.store_code = s2.substore_code
+        join projection p2 on l.contract_id = p2.contract_id and p2.projection_date=l.alert_date
+        WHERE p.payment_date >= date_trunc('month', current_date - interval '1' month)
+        AND p.payment_date < date_trunc('month', current_date)
+
+
+
+
+    ");
+
+     
+        return View('Dashboard.index',compact('LastmonthEstimatedIncome','profitprop','thismonthrevenue','lastmonthRevenue','data','dataSubStore','GraphData','FBGraph','totalCustomer','revenue','avgRevenuetolastmonth','totalProp'));
     }
     public function index()
     {   

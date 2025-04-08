@@ -113,9 +113,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 18px;
+    font-size: 12px;
     font-weight: bold;
-    color: #333;
     text-align: center;
     opacity: 0;
     animation: fadeIn 1s ease-in-out forwards;
@@ -318,18 +317,7 @@ body {
         <div class="panel-container show">
             <div class="panel-content bg-subtlelight-fade">
                 <div id="js-checkbox-toggles" class="d-flex mb-3">
-                    {{-- <div class="custom-control custom-switch mr-2">
-                        <input type="checkbox" class="custom-control-input" name="gra-0" id="gra-0" checked="checked">
-                        <label class="custom-control-label" for="gra-0">Target Profit</label>
-                    </div> --}}
-                    {{-- <div class="custom-control custom-switch mr-2">
-                        <input type="checkbox" class="custom-control-input" name="gra-1" id="gra-1" checked="checked">
-                        <label class="custom-control-label" for="gra-1">Actual Profit</label>
-                    </div>
-                    <div class="custom-control custom-switch mr-2">
-                        <input type="checkbox" class="custom-control-input" name="gra-2" id="gra-2" checked="checked">
-                        <label class="custom-control-label" for="gra-2">User Signups</label>
-                    </div> --}}
+                  
                 </div>
                 <div id="flot-toggles" class="w-100 mt-4" style="height: 300px"></div>
             </div>
@@ -341,135 +329,267 @@ body {
   {{-- END Market Dashboard --}}
 
 
+{{-- Profit Comparation  --}}
+<div class="col-lg-12">
+  <div id="col-6" class="panel">
+      <div class="panel-hdr">
+        <h2>Income Comparison</h2>
+      </div>
+      <div class="panel-container show">
+          <div class="panel-content p-0 mb-g">
+              <div class="alert alert-success alert-dismissible fade show border-faded border-left-0 border-right-0 border-top-0 rounded-0 m-0" role="alert">
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                  </button>
+                  <span id="curentdate2" class="js-get-date"></span>
 
-
-
-  <div class="barChartPG col-xl-6">
-      <h2>Properties Graph</h2>
-      <canvas id="barChart" width="350" height="200"></canvas>
+              </div>
+          </div>
+          <div class="panel-content">
+            <div class="row mb-g">
+              <div class="col-md-6 d-flex align-items-center">
+                <div id="flotPie" class="w-100" style="height:250px"></div>
+              </div>
+              <div class="col-md-6 col-lg-5 mr-lg-auto">
+                @foreach($LastmonthEstimatedIncome as $item)
+                  <!-- Actual Income -->
+                  <div class="d-flex justify-content-between mt-2 mb-1 fs-xs text-primary">
+                    <span>{{ $item->store_name }} Income</span>
+                    <span>${{ number_format($item->final_charge, 2) }}</span> <!-- Display actual income -->
+                  </div>
+                  <div class="progress progress-xs mb-3">
+                    <div class="progress-bar" role="progressbar" 
+                         style="width: {{ ($item->final_charge / 5000) * 100 }}%;" 
+                         aria-valuenow="{{ $item->final_charge }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="5000">
+                    </div>
+                  </div>
+          
+                  <!-- Estimated Income -->
+                  <div class="d-flex justify-content-between mt-2 mb-1 fs-xs text-info">
+                    <span>{{ $item->store_name }} Estimated Income</span>
+                    <span>${{ number_format($item->estimated_income, 2) }}</span> <!-- Display estimated income -->
+                  </div>
+                  <div class="progress progress-xs mb-3">
+                    <div class="progress-bar bg-info-500" role="progressbar" 
+                         style="width: {{ ($item->estimated_income / 5000) * 100 }}%;" 
+                         aria-valuenow="{{ $item->estimated_income }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="5000">
+                    </div>
+                  </div>
+                @endforeach
+              </div>
+            </div>
+          </div>
+      </div>
   </div>
-
-  <div class="FBGraph2 col-xl-6">
-
-      <h2> RETAIL F&B Graph</h2>
-      <canvas id="F&barChart" width="350" height="200"></canvas>
-  </div>
+</div>
+{{-- End Profit Comparation --}}
   
 </div>
 
 
-
+  <div class="row">
+    <!-- Properties Graph Panel -->
+    <div class="col-lg-6">
+      <div class="panel">
+        <div class="panel-hdr">
+          <h2>Properties Graph</h2>
+        </div>
+        <div class="panel-container">
+          <div class="barChartPG">
+            <canvas id="barChart" width="350" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- RETAIL F&B Graph Panel -->
+    <div class="col-lg-6">
+      <div class="panel">
+        <div class="panel-hdr">
+          <h2>RETAIL F&B Graph</h2>
+        </div>
+        <div class="panel-container">
+          <div class="FBGraph2">
+            <canvas id="F&barChart" width="350" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 
 @include('users_profile/signatorImgCrop')
 
 <script src="{{ asset('plugin/js/xlsx.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-    // Add checkboxes dynamically
-    $(document).ready(function () {
-  const profitprop = @json($profitprop);
+  $(document).ready(function() {
+    const lastMonthEstimatedIncome = @json($LastmonthEstimatedIncome);
 
-  // Group data by store name
-  const groupedData = {};
-  profitprop.forEach((item) => {
-      const store = item.store_name;
-      const timestamp = new Date(item.payment_date).getTime();
-      const charge = parseFloat(item.final_charge);
+    const incomeData = [];
+    const estimatedIncomeData = [];
 
-      if (!groupedData[store]) {
-          groupedData[store] = [];
-      }
+    lastMonthEstimatedIncome.forEach(function(item, index) {
+      incomeData.push({
+  label: item.store_name + ' (Income)',
+  data: parseFloat(item.final_charge),
+  color: getColor(index),
+});
 
-      groupedData[store].push([timestamp, charge]);
-  });
+estimatedIncomeData.push({
+  label: item.store_name + ' (Estimated)',
+  data: parseFloat(item.estimated_income),
+  color: getColor(index + lastMonthEstimatedIncome.length),
+});
 
-  // Convert to array format and assign colors
-  const colors = [
-      "#007bff", "#ffc107", "#28a745", "#dc3545", "#6610f2", "#fd7e14",
-      "#20c997", "#17a2b8", "#6f42c1", "#e83e8c" // Add more if needed
-  ];
+});
 
-  const storeSeries = Object.keys(groupedData).map((store, index) => {
-      return {
-          label: store,
-          data: groupedData[store],
-          color: colors[index % colors.length],
-          lines: { show: true, lineWidth: 2 },
-          points: { show: true },
-          shadowSize: 0
-      };
-  });
+    const combinedData = incomeData.concat(estimatedIncomeData);
 
+    console.log("Combined Data:", combinedData);
 
-      const checkboxContainer = $("#js-checkbox-toggles");
-      storeSeries.forEach((series, index) => {
-          const checkboxHTML = `
-              <div class="custom-control custom-switch mr-2">
-                  <input type="checkbox" class="custom-control-input" name="gra-${index}" id="gra-${index}" checked>
-                  <label class="custom-control-label" for="gra-${index}">${series.label}</label>
-              </div>`;
-          checkboxContainer.append(checkboxHTML);
-      });
-
-      const options = {
-          grid: {
-              hoverable: true,
-              clickable: true,
-              tickColor: 'rgba(0,0,0,0.05)',
-              borderWidth: 1,
-              borderColor: 'rgba(0,0,0,0.05)'
+    $.plot($("#flotPie"), combinedData, {
+      series: {
+        pie: {
+          innerRadius: 0.5, 
+          show: true,
+          radius: 1,
+          label: {
+            show: false, 
           },
-          tooltip: true,
-          tooltipOpts: {
-              cssClass: 'tooltip-inner',
-              defaultTheme: false
-          },
-          xaxis: {
-              mode: "time",
-              tickColor: 'rgba(0,0,0,0.05)'
-          },
-          yaxes: {
-              tickColor: 'rgba(0,0,0,0.05)',
-              tickFormatter: function (val) {
-                  return "$" + val;
-              }
-          }
-      };
+        },
+      },
+      grid: {
+        hoverable: true, 
+      },
+      tooltip: true,
+      tooltipOpts: {
+        content: function(label, xval, yval) {
+            return `${label}: $${yval.toFixed(2)}`;
+        },
+        defaultTheme: false,
+      },
+    });
 
-      let plot = null;
-
-      function plotNow() {
-          const selectedData = [];
-          checkboxContainer.find(':checkbox').each(function () {
-              const idx = parseInt($(this).attr("name").split("-")[1]);
-              if ($(this).is(':checked')) {
-                  selectedData.push(storeSeries[idx]);
-              }
-          });
-
-          if (selectedData.length > 0) {
-              if (plot) {
-                  plot.setData(selectedData);
-                  plot.draw();
-              } else {
-                  plot = $.plot($("#flot-toggles"), selectedData, options);
-              }
-          } else {
-              if (plot) {
-                  plot.setData([]);
-                  plot.draw();
-              }
-          }
-      }
-
-      checkboxContainer.on('change', ':checkbox', function () {
-          plotNow();
-      });
-
-      plotNow();
+    function getColor(index) {
+      const colors = ['#4CAF50', '#FF9800', '#03A9F4', '#E91E63', '#9C27B0'];
+      return colors[index % colors.length];
+    }
   });
 </script>
 
+
+<script>
+  // Add checkboxes dynamically
+  $(document).ready(function () {
+const profitprop = @json($profitprop);
+
+// Group data by store name
+const groupedData = {};
+profitprop.forEach((item) => {
+    const store = item.store_name;
+    const timestamp = new Date(item.payment_date).getTime();
+    const charge = parseFloat(item.final_charge);
+
+    if (!groupedData[store]) {
+        groupedData[store] = [];
+    }
+
+    groupedData[store].push([timestamp, charge]);
+});
+
+// Convert to array format and assign colors
+const colors = [
+    "#007bff", "#ffc107", "#28a745", "#dc3545", "#6610f2", "#fd7e14",
+    "#20c997", "#17a2b8", "#6f42c1", "#e83e8c" // Add more if needed
+];
+
+const storeSeries = Object.keys(groupedData).map((store, index) => {
+    return {
+        label: store,
+        data: groupedData[store],
+        color: colors[index % colors.length],
+        lines: { show: true, lineWidth: 2 },
+        points: { show: true },
+        shadowSize: 0
+    };
+});
+
+
+    const checkboxContainer = $("#js-checkbox-toggles");
+    storeSeries.forEach((series, index) => {
+        const checkboxHTML = `
+            <div class="custom-control custom-switch mr-2">
+                <input type="checkbox" class="custom-control-input" name="gra-${index}" id="gra-${index}" checked>
+                <label class="custom-control-label" for="gra-${index}">${series.label}</label>
+            </div>`;
+        checkboxContainer.append(checkboxHTML);
+    });
+
+    const options = {
+        grid: {
+            hoverable: true,
+            clickable: true,
+            tickColor: 'rgba(0,0,0,0.05)',
+            borderWidth: 1,
+            borderColor: 'rgba(0,0,0,0.05)'
+        },
+        tooltip: true,
+        tooltipOpts: {
+            cssClass: 'tooltip-inner',
+            defaultTheme: false
+        },
+        xaxis: {
+            mode: "time",
+            tickColor: 'rgba(0,0,0,0.05)'
+        },
+        yaxes: {
+            tickColor: 'rgba(0,0,0,0.05)',
+            tickFormatter: function (val) {
+                return "$" + val;
+            }
+        }
+    };
+
+    let plot = null;
+
+    function plotNow() {
+        const selectedData = [];
+        checkboxContainer.find(':checkbox').each(function () {
+            const idx = parseInt($(this).attr("name").split("-")[1]);
+            if ($(this).is(':checked')) {
+                selectedData.push(storeSeries[idx]);
+            }
+        });
+
+        if (selectedData.length > 0) {
+            if (plot) {
+                plot.setData(selectedData);
+                plot.draw();
+            } else {
+                plot = $.plot($("#flot-toggles"), selectedData, options);
+            }
+        } else {
+            if (plot) {
+                plot.setData([]);
+                plot.draw();
+            }
+        }
+    }
+
+    checkboxContainer.on('change', ':checkbox', function () {
+        plotNow();
+    });
+
+    plotNow();
+});
+</script>
+  
 <script>
 
 $(document).ready(function () {
@@ -477,6 +597,7 @@ $(document).ready(function () {
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const formattedDate = new Intl.DateTimeFormat('en-US', options).format(new Date());
     document.getElementById('current-date').textContent = formattedDate;
+    document.getElementById('curentdate2').textContent = formattedDate;
   document.addEventListener("DOMContentLoaded", function () {
     const dateElement = document.querySelector(".js-get-date");
     if (dateElement) {
@@ -505,7 +626,7 @@ const graphData = @json($GraphData);
 const FBGraph = @json($FBGraph);
 
 function createProgressBar(label, total, leased) {
-  const percentage = ((leased / total) * 100).toFixed(0); 
+  const percentage = 100-(((total - leased) / total) * 100).toFixed(0); 
 
   const chartContainer = $('<div>').addClass('chart-container');
   const chartDiv = $('<div>')
@@ -531,10 +652,10 @@ function createProgressBar(label, total, leased) {
 
   const labelDiv = $('<div>')
     .addClass('label')
-    .html(`Total of <span>${label}</span>`); 
+    .html(`<span>${label}</span>`); 
   const leaseoutDiv = $('<div>')
     .addClass('leaseout')
-    .text(`${total} Leased Out of ${leased}`);
+    .text(`${total - leased} Available`);
 
   const progressItem = $('<div>').addClass('progress-item');
 
@@ -548,6 +669,7 @@ function createProgressBar(label, total, leased) {
 
   return progressItem;
 }
+
 
 
 function createProgressRows(data, labels) {
