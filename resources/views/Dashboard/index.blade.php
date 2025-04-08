@@ -17,6 +17,9 @@ body {
     border-radius: 8px;
     margin-bottom: 2rem;
 }
+.page-content{
+  padding:0px 2rem; 
+}
 
 .subheader-title {
     font-size: 2rem;
@@ -138,7 +141,7 @@ body {
 .leaseout {
     font-size: 14px;
     font-weight: bold;
-    color: #9b9c9e;
+    color: #e73047;
     margin-top: 5px;
 }
 
@@ -165,7 +168,10 @@ body {
         margin-bottom: 1rem;
     }
 }
-
+.fad.fa-chart-line{
+  font-size: 16px;
+  margin-left: 5px;
+}
 </style>
 
 
@@ -175,7 +181,7 @@ body {
 
   <li class="position-absolute pos-top pos-right d-none d-sm-block">
     <span style="user-select: none;" id="current-date"></span>
-</li>
+  </li>
 
 
 
@@ -310,9 +316,7 @@ body {
   <div class="col-lg-12">
     <div id="panel-1" class="panel">
         <div class="panel-hdr">
-            <h2>
-                Marketing profits
-            </h2>
+          <h2>Marketing Performance</h2>
         </div>
         <div class="panel-container show">
             <div class="panel-content bg-subtlelight-fade">
@@ -391,35 +395,35 @@ body {
 </div>
 
 
-  <div class="row">
-    <!-- Properties Graph Panel -->
-    <div class="col-lg-6">
-      <div class="panel">
-        <div class="panel-hdr">
-          <h2>Properties Graph</h2>
-        </div>
-        <div class="panel-container">
-          <div class="barChartPG">
-            <canvas id="barChart" width="350" height="200"></canvas>
-          </div>
-        </div>
+<div class="row d-flex">
+  <!-- Properties Graph Panel -->
+  <div class="col-lg-6 d-flex">
+    <div class="panel flex-fill">
+      <div class="panel-hdr">
+        <h2>Properties Graph</h2>
       </div>
-    </div>
-  
-    <!-- RETAIL F&B Graph Panel -->
-    <div class="col-lg-6">
-      <div class="panel">
-        <div class="panel-hdr">
-          <h2>RETAIL F&B Graph</h2>
-        </div>
-        <div class="panel-container">
-          <div class="FBGraph2">
-            <canvas id="F&barChart" width="350" height="200"></canvas>
-          </div>
+      <div class="panel-container flex-fill">
+        <div class="barChartPG">
+          <canvas id="barChart" width="350" height="200"></canvas>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- RETAIL F&B Graph Panel -->
+  <div class="col-lg-6 d-flex">
+    <div class="panel flex-fill">
+      <div class="panel-hdr">
+        <h2>RETAIL F&B Graph</h2>
+      </div>
+      <div class="panel-container flex-fill">
+        <div class="FBGraph2">
+          <canvas id="F&barChart" width="350" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
   
 
 @include('users_profile/signatorImgCrop')
@@ -436,44 +440,50 @@ body {
 
     lastMonthEstimatedIncome.forEach(function(item, index) {
       incomeData.push({
-  label: item.store_name + ' (Income)',
-  data: parseFloat(item.final_charge),
-  color: getColor(index),
-});
+        label: item.store_name + ' (Income)',
+        data: [parseFloat(item.final_charge)], // Wrap data in an array
+        color: getColor(index),
+      });
 
-estimatedIncomeData.push({
-  label: item.store_name + ' (Estimated)',
-  data: parseFloat(item.estimated_income),
-  color: getColor(index + lastMonthEstimatedIncome.length),
-});
-
-});
+      estimatedIncomeData.push({
+        label: item.store_name + ' (Estimated)',
+        data: [parseFloat(item.estimated_income)], // Wrap data in an array
+        color: getColor(index + lastMonthEstimatedIncome.length),
+      });
+    });
 
     const combinedData = incomeData.concat(estimatedIncomeData);
-
-    console.log("Combined Data:", combinedData);
 
     $.plot($("#flotPie"), combinedData, {
       series: {
         pie: {
-          innerRadius: 0.5, 
+          innerRadius: 0.5,
           show: true,
           radius: 1,
           label: {
-            show: false, 
+            show: false,
           },
         },
       },
       grid: {
-        hoverable: true, 
+        hoverable: true,
       },
       tooltip: true,
       tooltipOpts: {
-        content: function(label, xval, yval) {
-            return `${label}: $${yval.toFixed(2)}`;
-        },
-        defaultTheme: false,
-      },
+  content: function (label, x, y) {
+    let cleanedValue = String(y).replace(/,/g, "").slice(1); 
+
+
+
+ // Debugging line 
+    const value = Array.isArray(y) ? cleanedValue : parseFloat(y);
+    if (isNaN(value)) {
+      return `${label}: $0.00`; 
+    }
+    return `${label}: $${value}`;
+  },
+  defaultTheme: false,
+},
     });
 
     function getColor(index) {
@@ -611,13 +621,7 @@ $(document).ready(function () {
     }
   });
 
-
-  const graphData = @json($GraphData);
-  const FBGraph = @json($FBGraph);
-
   
-
-
 
 
 
@@ -650,12 +654,35 @@ function createProgressBar(label, total, leased) {
     }
   });
 
-  const labelDiv = $('<div>')
-    .addClass('label')
-    .html(`<span>${label}</span>`); 
-  const leaseoutDiv = $('<div>')
-    .addClass('leaseout')
-    .text(`${total - leased} Available`);
+ // Calculate availability
+const available = total - leased;
+const leasedPercentage = (leased / total) * 100; 
+
+let iconClass = 'fas fa-chart-line-down'; 
+let colorClass = 'red';  
+let additionalIcon = ''; 
+
+if (leasedPercentage >= 80) {
+  iconClass = 'fas fa-chart-line-up'; // Rising arrow
+  colorClass = 'green'; 
+  additionalIcon = '<i class="fas fa-chart-line"></i>'; 
+}
+
+// Create the label div
+const labelDiv = $('<div>')
+  .addClass('label')
+  .html(`<span>${label}</span>`);
+
+const leaseoutDiv = $('<div>')
+  .addClass('leaseout')
+  .html(`${available} Availables <i class="${iconClass}"></i> ${additionalIcon}`);
+
+leaseoutDiv.css('color', colorClass); 
+$('body').append(labelDiv, leaseoutDiv);
+
+
+
+
 
   const progressItem = $('<div>').addClass('progress-item');
 
