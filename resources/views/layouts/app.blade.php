@@ -6,7 +6,7 @@
 <head>
     <meta charset="utf-8">
     <title>
-        Lease Property Management System
+        Lease Management System
     </title>
     <meta name="description" content="Page Title">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -586,7 +586,7 @@
                                             <img src="data:image/jpeg;base64,${result[i].photo}" class="rounded-circle profile-image" />
                                         </span>
                                         <span class="d-flex flex-column flex-1 ml-1">
-                                            <span class="name">Lease Property</span>
+                                            <span class="name">Lease Management</span>
                                             <span class="name">${result[i].name}</span>
                                             <span class="msg-a fs-sm">Last Date : ${moment(result[i].last_working_date, "YYYY-MM-DD[T]HH:mm:ss").format("MMM DD, YYYY")}</span>
                                         </span>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <title>
-        Login - Lease Property
+        Login - Lease Management
     </title>
     <meta name="description" content="Login">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -120,7 +120,7 @@
             <a href="javascript:void(0)" class="page-logo-link press-scale-down d-flex align-items-center">
                 <img src="{{ asset('plugin/img/logo.png') }}" alt="SmartAdmin WebApp" aria-roledescription="logo"
                     style="width:56px!important;height:28px!important;">
-                <span class="page-logo-text mr-1"> Lease Property</span>
+                <span class="page-logo-text mr-1"> Lease Management</span>
                 <i class="fal fa-angle-down d-inline-block ml-1 fs-lg color-primary-300"></i>
             </a>
         </div>

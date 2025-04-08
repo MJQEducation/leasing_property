@@ -7,7 +7,7 @@
     </div>
     <div class="row flex-column text-center border pt-2">
         <h4>ទម្រង់ចាកចេញពីការងារ</h4>
-        <h4>Lease Property FORM</h4>
+        <h4>Lease Management FORM</h4>
     </div>
     <div class="row border pt-2 px-2">
         <p class="text-justify">ទម្រង់នេះ គឺនឹងត្រូវប្រើនៅពេលដែលបុគ្គលិកណាម្នាក់បានឈប់ពីការងារ។
@@ -506,7 +506,7 @@
     <br />
 
     <div class="row">
-        <button class="btn btn-primary" onclick="saveExitClearance()">Save Lease Property</button>
+        <button class="btn btn-primary" onclick="saveExitClearance()">Save Lease Management</button>
         &nbsp;
         <button class="btn btn-danger" onclick="clearForm()">Clear</button>
     </div>

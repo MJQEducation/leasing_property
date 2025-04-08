@@ -883,7 +883,7 @@
         }
 
         var removeExitClearance = async (id, name) => {
-            let result = await conditionSWAlert(`Do you want to remove Lease Property ${name}?`, 'question',
+            let result = await conditionSWAlert(`Do you want to remove Lease Management ${name}?`, 'question',
                 'Yes Remove!')
 
             if (!result) {

@@ -107,7 +107,7 @@ body {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: conic-gradient(#00cab8 0% 0%, #ccc 0% 100%);
+    background-color: #fff;
     transition: background 0.5s ease;
 }
 
@@ -452,15 +452,15 @@ body {
           {
             label: 'Actual Income',
             data: actualIncome,
-            backgroundColor: 'rgba(75, 192, 192, 0.6)', // Light teal color
-            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(54, 162, 235, 0.6)', // Light blue for actual income
+            borderColor: 'rgba(54, 162, 235, 1)',
             borderWidth: 1,
           },
           {
             label: 'Estimated Income',
             data: estimatedIncome,
-            backgroundColor: 'rgba(255, 99, 132, 0.6)', // Light red color
-            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'rgba(255, 159, 64, 0.6)', // Orange for estimated income
+            borderColor: 'rgba(255, 159, 64, 1)',
             borderWidth: 1,
           },
         ],
@@ -501,7 +501,6 @@ body {
     });
   });
 </script>
-
 <script>
   // Add checkboxes dynamically
   $(document).ready(function () {
@@ -689,10 +688,6 @@ const leaseoutDiv = $('<div>')
 
 leaseoutDiv.css('color', colorClass); 
 $('body').append(labelDiv, leaseoutDiv);
-
-
-
-
 
   const progressItem = $('<div>').addClass('progress-item');
 

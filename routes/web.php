@@ -10,6 +10,7 @@ use App\Http\Controllers\MainvaluelistController;
 use App\Http\Controllers\PushExitController;
 use App\Http\Controllers\SocialController;
 use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\CustomerController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -65,6 +66,15 @@ Route::group(['middleware' => ['web']], function () {
     Route::Post('/social/getCheckerForm', [SocialController::class, 'getCheckerForm']);
     Route::Post('/social/getApprovalForm', [SocialController::class, 'getApprovalForm']);
     #endregion
+
+    #Contract
+
+    Route::get('/customers/index', [CustomerController::class, 'index']);
+    Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
+    Route::delete('/customer/{id}', [CustomerController::class, 'destroy'])->name('customer.destroy');
+
+
+    #End Contract
 
     Route::get('/abbreviation/{abbreviation}', [AbbreviationController::class, 'index'])->name('abbreviation.index');
 

@@ -4,7 +4,7 @@
             data-toggle="modal" data-target="#modal-shortcut">
             <img src="{{ asset('plugin/img/logo.png') }}" alt="AII Language Center" aria-roledescription="logo"
                 style="width:56px!important;height:28px!important;">
-            <span class="page-logo-text mr-1"> Lease Property</span>
+            <span class="page-logo-text mr-1"> Lease Management</span>
             <span class="position-absolute text-white opacity-50 small pos-top pos-right mr-2 mt-n2"></span>
             <i class="fal fa-angle-down d-inline-block ml-1 fs-lg color-primary-300"></i>
         </a>
@@ -64,7 +64,7 @@
             <li name='panelList' data-access-to="parent">
                 <a href="javascript:void(0);" title="Setting" data-filter-tags='{"anchor":"miltiple","role":"parent"}'>
                     <i class="fas fa-portal-exit"></i>
-                    <span class="nav-link-text">Lease Property</span>
+                    <span class="nav-link-text">Lease Management</span>
                 </a>
                 <ul>
                     <li name='panelList' data-access-to="ExitClearance-index">
@@ -78,6 +78,28 @@
 
                 </ul>
             </li>
+
+            {{-- Contract --}}
+
+            <li name='panelList' data-access-to="parent">
+                <a href="javascript:void(0);" title="Setting" data-filter-tags='{"anchor":"miltiple","role":"parent"}'>
+                    <i class="fas fa-handshake"></i>
+                    <span class="nav-link-text">Contract</span>
+                </a>
+                <ul>
+                    <li name='panelList' data-access-to="Customers-index">
+                        <a href="javascript:void(0);" title="User"
+                            data-filter-tags='{"anchor":"miltiple","role":"child"}'
+                            onclick="PanelLinkActive(this);viewIndex('{{ url('customers/index') }}');"
+                            class=" waves-effect waves-themed">
+                            <span class="nav-link-text">Customers</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
+
+            {{-- END Contract --}}
 
             
 
