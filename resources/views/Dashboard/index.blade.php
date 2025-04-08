@@ -352,7 +352,9 @@ body {
           <div class="panel-content">
             <div class="row mb-g">
               <div class="col-md-6 d-flex align-items-center">
-                <div id="flotPie" class="w-100" style="height:250px"></div>
+                <div class="w-100" style="height:250px">
+                  <canvas id="incomeBarChart" class="w-100" style="height: 250px;"></canvas>
+                </div>
               </div>
               <div class="col-md-6 col-lg-5 mr-lg-auto">
                 @foreach($LastmonthEstimatedIncome as $item)
@@ -435,64 +437,70 @@ body {
   $(document).ready(function() {
     const lastMonthEstimatedIncome = @json($LastmonthEstimatedIncome);
 
-    const incomeData = [];
-    const estimatedIncomeData = [];
+    // Extract data for the bar chart
+    const storeNames = lastMonthEstimatedIncome.map(item => item.store_name);
+    const actualIncome = lastMonthEstimatedIncome.map(item => parseFloat(item.final_charge));
+    const estimatedIncome = lastMonthEstimatedIncome.map(item => parseFloat(item.estimated_income));
 
-    lastMonthEstimatedIncome.forEach(function(item, index) {
-      incomeData.push({
-        label: item.store_name + ' (Income)',
-        data: [parseFloat(item.final_charge)], // Wrap data in an array
-        color: getColor(index),
-      });
-
-      estimatedIncomeData.push({
-        label: item.store_name + ' (Estimated)',
-        data: [parseFloat(item.estimated_income)], // Wrap data in an array
-        color: getColor(index + lastMonthEstimatedIncome.length),
-      });
-    });
-
-    const combinedData = incomeData.concat(estimatedIncomeData);
-
-    $.plot($("#flotPie"), combinedData, {
-      series: {
-        pie: {
-          innerRadius: 0.5,
-          show: true,
-          radius: 1,
-          label: {
-            show: false,
+    // Create the bar chart
+    const ctx = document.getElementById('incomeBarChart').getContext('2d');
+    const incomeBarChart = new Chart(ctx, {
+      type: 'bar', // Use 'bar' for a bar chart
+      data: {
+        labels: storeNames, // Store names on the x-axis
+        datasets: [
+          {
+            label: 'Actual Income',
+            data: actualIncome,
+            backgroundColor: 'rgba(75, 192, 192, 0.6)', // Light teal color
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1,
+          },
+          {
+            label: 'Estimated Income',
+            data: estimatedIncome,
+            backgroundColor: 'rgba(255, 99, 132, 0.6)', // Light red color
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+          },
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              label: function (tooltipItem) {
+                return `$${tooltipItem.raw.toFixed(2)}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: {
+              display: false,
+            },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function (value) {
+                return `$${value}`; // Format y-axis values as currency
+              },
+            },
           },
         },
       },
-      grid: {
-        hoverable: true,
-      },
-      tooltip: true,
-      tooltipOpts: {
-  content: function (label, x, y) {
-    let cleanedValue = String(y).replace(/,/g, "").slice(1); 
-
-
-
- // Debugging line 
-    const value = Array.isArray(y) ? cleanedValue : parseFloat(y);
-    if (isNaN(value)) {
-      return `${label}: $0.00`; 
-    }
-    return `${label}: $${value}`;
-  },
-  defaultTheme: false,
-},
     });
-
-    function getColor(index) {
-      const colors = ['#4CAF50', '#FF9800', '#03A9F4', '#E91E63', '#9C27B0'];
-      return colors[index % colors.length];
-    }
   });
 </script>
-
 
 <script>
   // Add checkboxes dynamically
@@ -620,6 +628,8 @@ $(document).ready(function () {
       dateElement.textContent = currentDate;
     }
   });
+
+
 
   
 
