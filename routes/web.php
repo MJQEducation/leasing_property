@@ -70,11 +70,12 @@ Route::group(['middleware' => ['web']], function () {
     #Contract
 
     Route::get('/customers/index', [CustomerController::class, 'index'])->name('customer.index');
+    Route::get('/customers/data', [CustomerController::class, 'data'])->name('customer.data');
     Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
     Route::post('/customer', [CustomerController::class, 'store'])->name('customer.store');
     Route::get('/customer/{id}/edit', [CustomerController::class, 'edit'])->name('customer.edit');
     Route::put('/customer/{id}', [CustomerController::class, 'update'])->name('customer.update');
-    Route::delete('/customer/{id}', [CustomerController::class, 'destroy'])->name('customer.destroy');    #End Contract
+    Route::delete('/destroyCustomer/{id}', [CustomerController::class, 'destroy'])->name('customer.destroy');    #End Contract
 
     Route::get('/abbreviation/{abbreviation}', [AbbreviationController::class, 'index'])->name('abbreviation.index');
 

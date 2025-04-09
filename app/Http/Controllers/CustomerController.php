@@ -26,10 +26,19 @@ class CustomerController extends Controller
             return view('social.unauthorized');
         }
 
-        // Fetch active customers
-        $customers = Customer::where('active', true)->get();
+        return view('customer.index');
+    }
+    public function data()
+    {
+        if (!session()->has('AuthToken')) {
+            return redirect('login');
+        }
+        if (!RBAC::isAccessible(str_replace('Controller', '', class_basename(Route::current()->controller)) . '-' . Route::getCurrentRoute()->getActionMethod())) {
+            return view('social.unauthorized');
+        }
 
-        return view('customer.index')->with('customers', $customers);
+        $customers = Customer::where('active', true)->get();
+        return response()->json(['customers' => $customers], 200);
     }
 
     /**
@@ -158,6 +167,7 @@ class CustomerController extends Controller
      */
     public function destroy($id)
     {
+
         // Find the customer by ID
         $customer = Customer::find($id);
 
