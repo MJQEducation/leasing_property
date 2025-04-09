@@ -1,21 +1,12 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Helper\ExitClearanceHelper;
+
 use App\Helper\RBAC;
-use App\Jobs\Jobs;
-use App\Models\ExitClearance;
-use App\Models\ExitClearanceBulletin;
-use App\Models\ExitClearanceCheckList;
-use App\Models\ExitClearanceSignature;
-use App\Models\User;
-use Carbon\Carbon;
-use DateTimeZone;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
 use App\Models\Customer;
+
 class CustomerController extends Controller
 {
     /**
@@ -26,23 +17,20 @@ class CustomerController extends Controller
     public function index()
     {
         // Check if user is authenticated
-        if (session()->has('AuthToken') == false) {
+        if (!session()->has('AuthToken')) {
             return redirect('login');
         }
 
+        // Check RBAC permissions
         if (!RBAC::isAccessible(str_replace('Controller', '', class_basename(Route::current()->controller)) . '-' . Route::getCurrentRoute()->getActionMethod())) {
-            return View('social.unauthorized');
+            return view('social.unauthorized');
         }
 
-        $noPhoto = base64_encode(file_get_contents('files/userimg/nophoto.jpg'));
+        // Fetch active customers
+        $customers = Customer::where('active', true)->get();
 
-        $customers = DB::table('customers')->where('active', true)->get();
-            
-        return View('customer.index')
-        ->with('noPhoto', $noPhoto)
-        ->with('customers', $customers);
+        return view('customer.index')->with('customers', $customers);
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -58,46 +46,78 @@ class CustomerController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
+        // Check authentication
+        if (!session()->has('AuthToken')) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Check RBAC permissions
+        if (!RBAC::isAccessible(str_replace('Controller', '', class_basename(Route::current()->controller)) . '-' . Route::getCurrentRoute()->getActionMethod())) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Validate request data
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'ownerName' => 'required|string|max:255',
             'phone' => 'required|string|max:15',
-            'email' => 'required|email|max:255',
         ]);
-    
-        Customer::create([
-            'ownerName' => $validated['name'],
+
+        // Create a new customer
+        $customer = Customer::create([
+            'ownerName' => $validated['ownerName'],
             'phone' => $validated['phone'],
-            'email' => $validated['email'],
-            'active' => true
+            'active' => true,
         ]);
-    
-        return redirect()->route('customer.index')->with('success', 'Customer added successfully!');
+
+        // Return success response
+        return response()->json([
+            'message' => 'Customer added successfully.',
+            'customer' => $customer,
+        ], 201);
     }
 
     /**
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
-        //
+        // Find the customer by ID
+        $customer = Customer::find($id);
+
+        // Return error if not found
+        if (!$customer) {
+            return response()->json(['message' => 'Customer not found.'], 404);
+        }
+
+        // Return customer details
+        return response()->json(['customer' => $customer], 200);
     }
 
     /**
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function edit($id)
     {
-        //
+        // Find the customer by ID
+        $customer = Customer::find($id);
+
+        // Return error if not found
+        if (!$customer) {
+            return response()->json(['message' => 'Customer not found.'], 404);
+        }
+
+        // Return customer details for editing
+        return response()->json(['customer' => $customer], 200);
     }
 
     /**
@@ -105,38 +125,56 @@ class CustomerController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, $id)
-    {
-        //
+{
+    // Find the customer by ID
+    $customer = Customer::find($id);
+
+    // Return error if not found
+    if (!$customer) {
+        return response()->json(['message' => 'Customer not found.'], 404);
     }
+
+    // Update customer details
+    $customer->update([
+        'ownerName' => $request->input('ownerName'),
+        'phone' => $request->input('phone'),
+    ]);
+
+    // Return success response
+    return response()->json([
+        'message' => 'Customer updated successfully.',
+        'customer' => $customer,
+    ], 200);
+}
 
     /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
-{
-    dd($id);  // This should dump the customer ID
+    {
+        // Find the customer by ID
+        $customer = Customer::find($id);
 
-    $customer = Customer::find($id);
+        // Return error if not found
+        if (!$customer) {
+            return response()->json(['message' => 'Customer not found.'], 404);
+        }
 
-    if (!$customer) {
-        return response()->json(['message' => 'Customer not found.'], 404);
+        try {
+            // Soft delete (deactivate) the customer
+            $customer->update(['active' => false]);
+
+            // Return success response
+            return response()->json(['message' => 'Customer deactivated successfully.'], 200);
+        } catch (\Exception $e) {
+            // Return error response on failure
+            return response()->json(['message' => 'Failed to deactivate customer.'], 500);
+        }
     }
-
-    try {
-        $customer->active = false;
-        $customer->save();
-
-        return response()->json(['message' => 'Customer deactivated successfully.'], 200);
-    } catch (\Exception $e) {
-        return response()->json(['message' => 'Failed to deactivate customer.'], 500);
-    }
-}
-
-    
 }

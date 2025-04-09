@@ -38,7 +38,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <button class="btn btn-sm btn-info edit-btn" data-id="{{ $customer->id }}" data-toggle="modal" data-target="#editCustomerModal">
+                                    <button class="btn btn-sm btn-info edit-btn" data-id="{{ $customer->id }}" data-toggle="modal" data-target="#addCustomerModal">
                                         <i class="fa fa-edit"></i> Edit
                                     </button>
                                     <button class="btn btn-sm btn-danger delete-btn" data-id="{{ $customer->id }}">
@@ -54,8 +54,7 @@
         </div>
     </div>
 </div>
-
-<!-- Add Customer Modal -->
+<!-- Add/Edit Customer Modal -->
 <div class="modal fade" id="addCustomerModal" tabindex="-1" role="dialog" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -66,9 +65,11 @@
                 </button>
             </div>
             <div class="modal-body">
-                <!-- Add Customer Form -->
-                <form id="addCustomerForm" method="POST" action="{{ route('customer.create') }}">
+                <!-- Add/Edit Customer Form -->
+                <form id="addCustomerForm" method="POST">
                     @csrf
+                    <input type="hidden" id="customerId" name="customerId"> <!-- Hidden input for customer ID -->
+                    <input type="hidden" name="_method" value="PUT"> <!-- Spoof the PUT method -->
                     <div class="form-group">
                         <label for="name">Name</label>
                         <input type="text" class="form-control" id="name" name="name" placeholder="Enter customer name" required>
@@ -77,134 +78,182 @@
                         <label for="phone">Phone</label>
                         <input type="text" class="form-control" id="phone" name="phone" placeholder="Enter phone number" required>
                     </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>
-                    </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="submit" form="addCustomerForm" class="btn btn-primary">Add Customer</button>
+                <button type="submit" form="addCustomerForm" class="btn btn-primary" id="saveCustomerButton">Save</button>
             </div>
         </div>
     </div>
 </div>
-
 <!-- Script -->
 <script>
     $(document).ready(function () {
-    $('#dt-basic-example').DataTable({
-        responsive: true,
-        lengthChange: true,
-        paging: true,
-        searching: true,
-        info: true,
-        pageLength: 10,
-        lengthMenu: [
-            [5, 10, 25, 50, -1],
-            [5, 10, 25, 50, "All"]
-        ],
-        dom:
-            "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",  // This line brings back pagination and info
-        buttons: [
-            {
-                text: 'Add New',
-                className: 'btn btn-primary btn-sm mr-1',
-                action: function (e, dt, node, config) {
-                    $('#addCustomerModal').modal('show');
+        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+        $('#dt-basic-example').DataTable({
+            responsive: true,
+            lengthChange: true,
+            paging: true,
+            searching: true,
+            info: true,
+            pageLength: 10,
+            lengthMenu: [
+                [5, 10, 25, 50, -1],
+                [5, 10, 25, 50, "All"]
+            ],
+            dom:
+                "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                {
+                    text: 'Add New',
+                    className: 'btn btn-primary btn-sm mr-1',
+                    action: function (e, dt, node, config) {
+                        $('#addCustomerModal #customerId').val('');
+                        $('#addCustomerModal #name').val('');
+                        $('#addCustomerModal #phone').val('');
+                        $('#addCustomerModalLabel').text('Add New Customer');
+                        $('#addCustomerModal').modal('show');
+                    }
+                },
+                {
+                    extend: 'pdfHtml5',
+                    text: 'PDF',
+                    titleAttr: 'Generate PDF',
+                    className: 'btn-outline-danger btn-sm mr-1'
+                },
+                {
+                    extend: 'excelHtml5',
+                    text: 'Excel',
+                    titleAttr: 'Generate Excel',
+                    className: 'btn-outline-success btn-sm mr-1'
+                },
+                {
+                    extend: 'csvHtml5',
+                    text: 'CSV',
+                    titleAttr: 'Generate CSV',
+                    className: 'btn-outline-primary btn-sm mr-1'
+                },
+                {
+                    extend: 'copyHtml5',
+                    text: 'Copy',
+                    titleAttr: 'Copy to clipboard',
+                    className: 'btn-outline-primary btn-sm mr-1'
+                },
+                {
+                    extend: 'print',
+                    text: 'Print',
+                    titleAttr: 'Print Table',
+                    className: 'btn-outline-primary btn-sm'
                 }
-            },
-            {
-                extend: 'pdfHtml5',
-                text: 'PDF',
-                titleAttr: 'Generate PDF',
-                className: 'btn-outline-danger btn-sm mr-1'
-            },
-            {
-                extend: 'excelHtml5',
-                text: 'Excel',
-                titleAttr: 'Generate Excel',
-                className: 'btn-outline-success btn-sm mr-1'
-            },
-            {
-                extend: 'csvHtml5',
-                text: 'CSV',
-                titleAttr: 'Generate CSV',
-                className: 'btn-outline-primary btn-sm mr-1'
-            },
-            {
-                extend: 'copyHtml5',
-                text: 'Copy',
-                titleAttr: 'Copy to clipboard',
-                className: 'btn-outline-primary btn-sm mr-1'
-            },
-            {
-                extend: 'print',
-                text: 'Print',
-                titleAttr: 'Print Table',
-                className: 'btn-outline-primary btn-sm'
-            }
-        ]
-    });
-    $(document).on('click', '.delete-btn', function (e) {
-    e.preventDefault(); // Prevent default action
-
-    const customerId = $(this).data('id');
-
-    // Define the mixin and assign it to a variable
-    const swalWithBootstrapButtons = Swal.mixin({
-        customClass: {
-            confirmButton: "btn btn-primary",
-            cancelButton: "btn btn-danger mr-2"
-        },
-        buttonsStyling: false
-    });
-
-    swalWithBootstrapButtons.fire({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning", // use icon instead of type
-        showCancelButton: true,
-        confirmButtonText: "Yes, delete it!",
-        cancelButtonText: "No, cancel!",
-        reverseButtons: true
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-    url: `/customer/${customerId}`,
-    method: 'DELETE',
-    headers: {
-        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-    },
-    success: function (response) {
-        Swal.fire({
-            icon: 'success',
-            title: 'Deactivated!',
-            text: 'Customer has been deactivated successfully.',
-            timer: 2000,
-            showConfirmButton: false
-        }).then(() => {
-            location.reload();
+            ]
         });
-    },
-    error: function (xhr, status, error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'An error occurred while deactivating the customer.',
-            timer: 2000,
-            showConfirmButton: false
-        });
+
+        // Save Customer (Create/Update)
+        $(document).on('click', '#saveCustomerButton', function () {
+    const customerId = $('#customerId').val(); 
+    const ownerName = $('#name').val();
+    const phone = $('#phone').val();
+
+    let url = '/customer'; 
+    let method = 'POST'; 
+
+    if (customerId) {
+        url = `/customer/${customerId}`; 
+        method = 'PUT'; 
     }
-});
 
+    $.ajax({
+        url: url,
+        method: method,
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            ownerName: ownerName,
+            phone: phone
+        },
+        success: function (response) {
+            Swal.fire(
+                'Success!',
+                customerId ? 'Customer updated successfully!' : 'Customer added successfully!',
+                'success'
+            ).then(() => {
+                Location.reload(); 
+            });
+        },
+        error: function (xhr, status, error) {
+            Swal.fire(
+                'Error!',
+                'There was an issue saving the customer data.',
+                'error'
+            );
         }
     });
 });
 
-});
+        // Edit Customer
+        $(document).on('click', '.edit-btn', function () {
+            const customerId = $(this).data('id');
+            $.ajax({
+                url: `/customer/${customerId}/edit`,
+                method: 'GET',
+                success: function (response) {
+                    $('#customerId').val(response.customer.id);
+                    $('#name').val(response.customer.ownerName);
+                    $('#phone').val(response.customer.phone);
+                    $('#addCustomerModalLabel').text('Edit Customer');
+                    $('#addCustomerModal').modal('show');
+                },
+                error: function (xhr, status, error) {
+                    Swal.fire(
+                        'Error!',
+                        'Unable to fetch customer data.',
+                        'error'
+                    );
+                }
+            });
+        });
 
+        // Delete Customer
+        $(document).on('click', '.delete-btn', function () {
+            const customerId = $(this).data('id');
+            Swal.fire({
+                title: `Are you sure to delete customer with id ${customerId}?`,
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "No, cancel!",
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/customer/${customerId}`,
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        success: function (response) {
+                            Swal.fire(
+                                'Deleted!',
+                                'The customer has been deactivated.',
+                                'success'
+                            ).then(() => {
+                                location.reload();
+                            });
+                        },
+                        error: function (xhr, status, error) {
+                            Swal.fire(
+                                'Error!',
+                                'Failed to deactivate customer.',
+                                'error'
+                            );
+                        }
+                    });
+                }
+            });
+        });
+    });
 </script>

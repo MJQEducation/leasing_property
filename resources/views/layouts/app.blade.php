@@ -13,6 +13,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, minimal-ui">
     <!-- Call App Mode on ios devices -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Remove Tap Highlight on Windows Phone IE -->
     <meta name="msapplication-tap-highlight" content="no">
     <!-- base css -->
@@ -172,6 +173,7 @@
   <link rel="stylesheet" media="screen, print" href="css/your_styles.css">-->
 
     <script>
+        window.csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         function getPlatform() {
             var platform = ["Win32", "Android", "iOS"];
 
@@ -448,6 +450,13 @@
     <script src="{{ asset('plugin/js/myapp.js') }}"></script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/easy-pie-chart/2.1.6/jquery.easypiechart.min.js"></script>    
+    <script>
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });   
+    </script>
     <!--for dashboard-->
     
     <script src="{{ asset('plugin/js/miscellaneous/fullcalendar/fullcalendar.bundle.js') }}"></script>
