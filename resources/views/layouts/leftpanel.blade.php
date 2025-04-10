@@ -94,6 +94,14 @@
                             class=" waves-effect waves-themed">
                             <span class="nav-link-text">Customers</span>
                         </a>
+
+                        <a href="javascript:void(0);" title="User"
+                            data-filter-tags='{"anchor":"miltiple","role":"child"}'
+                            onclick="PanelLinkActive(this);viewIndex('{{ url('stores/index') }}');"
+                            class=" waves-effect waves-themed">
+                            <span class="nav-link-text">Store</span>
+                        </a>
+
                     </li>
 
                 </ul>

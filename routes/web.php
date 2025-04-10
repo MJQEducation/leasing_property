@@ -11,6 +11,8 @@ use App\Http\Controllers\PushExitController;
 use App\Http\Controllers\SocialController;
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\StoreController;
+
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -76,6 +78,17 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('/customer/{id}/edit', [CustomerController::class, 'edit'])->name('customer.edit');
     Route::put('/customer/{id}', [CustomerController::class, 'update'])->name('customer.update');
     Route::delete('/destroyCustomer/{id}', [CustomerController::class, 'destroy'])->name('customer.destroy');    #End Contract
+
+
+    Route::get('/stores/index', [StoreController::class, 'index'])->name('store.index');
+    Route::get('/stores/data', [StoreController::class, 'data'])->name('store.data');
+    Route::get('/stores/create', [StoreController::class, 'create'])->name('store.create');
+    Route::post('/store', [StoreController::class, 'store'])->name('store.store');
+    Route::get('/store/{id}/edit', [StoreController::class, 'edit'])->name('store.edit');
+    Route::put('/store/{id}', [StoreController::class, 'update'])->name('store.update');
+    Route::delete('/destroyStore/{id}', [StoreController::class, 'destroy'])->name('store.destroy');    #End Contract
+
+
 
     Route::get('/abbreviation/{abbreviation}', [AbbreviationController::class, 'index'])->name('abbreviation.index');
 
