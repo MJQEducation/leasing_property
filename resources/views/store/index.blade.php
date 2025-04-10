@@ -252,7 +252,7 @@ function fetchCustomers() {
         if (Array.isArray(response.abbreviation)) {
             response.abbreviation.forEach(function(abbreviation) {
                 abbreviationSelect.append(
-                new Option(`${abbreviation.abbreviation} (${abbreviation.is_sub ? 'Store' : 'Sub Store'})`, abbreviation.id)
+                new Option(`${abbreviation.abbreviation} (${abbreviation.name ? 'Store' : 'Sub Store'})`, abbreviation.id)
             );
             });
         } else {
