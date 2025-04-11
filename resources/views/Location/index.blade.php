@@ -1,10 +1,9 @@
-
 <div class="row">
     <div class="col-xl-12">
         <div id="panel-1" class="panel">
             <div class="panel-hdr">
                 <h2>
-                    Abbreviations <span class="fw-300"><i>Table</i></span>
+                    Location <span class="fw-300"><i>Table</i></span>
                 </h2>
                 <div class="panel-toolbar">
                     <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
@@ -155,9 +154,6 @@
 
     // Delete button click
     $(document).on('click', '.delete-btn', function () {
-        let selectedUserId = $(`#${elementName}`).val();
-console.log("Selected User ID:", selectedUserId);
-
       const id = $(this).data('id');    
       Swal.fire({
         title: `Delete location ${id}?`,
