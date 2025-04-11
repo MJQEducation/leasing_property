@@ -2,131 +2,195 @@
 
 namespace App\Http\Controllers;
 
-use App\Helper\ExitClearanceHelper;
 use App\Helper\RBAC;
-use App\Jobs\Jobs;
-use App\Models\ExitClearance;
-use App\Models\ExitClearanceBulletin;
-use App\Models\ExitClearanceCheckList;
-use App\Models\ExitClearanceSignature;
-use App\Models\User;
-use Carbon\Carbon;
-use DateTimeZone;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;  
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Abbreviation;
 
 class AbbreviationController extends Controller
 {
-    public function show(Request $request)
-    {
-        $abbreviation = $request->route('abbreviation');    
-    
-        if ($abbreviation == 'sub') {
-            $query = DB::table('substore')->where('status', 1);
-        } else {
-            $query = DB::table('stores')->where('status', 1)->where('abbreviation', $abbreviation);
-        }
-    
-        if (!empty($request->input('search.value'))) {
-            $search = $request->input('search.value');
-            $query->where(function ($q) use ($search) {
-                $q->where('store_code', 'LIKE', "%{$search}%")
-                  ->orWhere('name_en', 'LIKE', "%{$search}%")
-                  ->orWhere('name_kh', 'LIKE', "%{$search}%")
-                  ->orWhere('status', 'LIKE', "%{$search}%");
-            });
-        }
-    
-        $totalRecordsFiltered = $query->count();
-    
-        $perPage = $request->input('length', 10);  
-        $start = $request->input('start', 0);  
-    
-        $columnIndex = $request->input('order.0.column');
-        $columnDirection = $request->input('order.0.dir');
-        $columnName = $request->input('columns.' . $columnIndex . '.data', 'name_en');
-        if (!in_array($columnDirection, ['asc', 'desc'])) {
-            $columnDirection = 'asc';
-        }
-    
-        $query = $query->orderBy($columnName, $columnDirection)
-                       ->skip($start)
-                       ->take($perPage);
-    
-        $data = $query->get();
-    
-        if ($abbreviation == 'sub') {
-            $totalRecords = DB::table('substore')->where('status', 1)->count();  
-        } else {
-            $totalRecords = DB::table('stores')->where('status', 1)->where('abbreviation', $abbreviation)->count();  
-        }
-    
-        return response()->json([
-            'draw' => intval($request->input('draw')),
-            'recordsTotal' => $totalRecords,  
-            'recordsFiltered' => $totalRecordsFiltered, 
-            'data' => $data,  
-        ]);
-    }
-    
-
-
-
-
-    
-
-    
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function index()
     {
-        return view('Abbreviation.index');
+        // Check if user is authenticated
+        if (!session()->has('AuthToken')) {
+            return redirect('login');
+        }
+
+        // Check RBAC permissions
+        if (!RBAC::isAccessible(str_replace('Controller', '', class_basename(Route::current()->controller)) . '-' . Route::getCurrentRoute()->getActionMethod())) {
+            return view('social.unauthorized');
+        }
+
+        return view('abbreviation.index');
     }
-    
-    public function add()
+    public function data()
     {
-        return view('Abbreviation.add');
+        if (!session()->has('AuthToken')) {
+            return redirect('login');
+        }
+        if (!RBAC::isAccessible(str_replace('Controller', '', class_basename(Route::current()->controller)) . '-' . Route::getCurrentRoute()->getActionMethod())) {
+            return view('social.unauthorized');
+        }
+
+        $abbreviations = Abbreviation::where('status', true)->get();
+
+        return response()->json(['abbreviations' => $abbreviations], 200);
     }
 
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        return view('abbreviation.form');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function store(Request $request)
     {
-        $request->validate([
-            'abbreviation' => 'required',
-            'description' => 'required',
+        // Check authentication
+        if (!session()->has('AuthToken')) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Check RBAC permissions
+        if (!RBAC::isAccessible(str_replace('Controller', '', class_basename(Route::current()->controller)) . '-' . Route::getCurrentRoute()->getActionMethod())) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Validate request data
+        $validated = $request->validate([
+            'store_code' => 'required',
+            'name' => 'required',
+            'substore' => 'required'
         ]);
 
-        DB::table('abbreviation')->insert([
-            'abbreviation' => $request->abbreviation,
-            'description' => $request->description,
+
+        $abbreviation = Abbreviation::create([
+            'abbreviation' => $validated['abbreviation'],
+            'is_sub' => $validated['substore'],
+            'store_code' => $request->input('store_code'),
+            'status' => true,
+            'created_by'=>1,
+            'name'=>$validated['name']
         ]);
 
-        return redirect('/abbreviation/index');
+        return response()->json([
+            'message' => 'abbreviation added successfully.',
+            'abbreviation' => $abbreviation,
+        ], 201);
     }
 
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function show($id)
+    {
+        // Find the customer by ID
+        $abbreviation = Abbreviation::find($id);
+
+        // Return error if not found
+        if (!$abbreviation) {
+            return response()->json(['message' => 'abbreviation not found.'], 404);
+        }
+
+        // Return customer details
+        return response()->json(['abbreviation' => $abbreviation], 200);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function edit($id)
     {
-        $data = DB::table('abbreviation')->where('id', $id)->first();
-        return view('Abbreviation.edit', ['data' => $data]);
+        // Find the abbreviation by ID
+        $abbreviation = Abbreviation::find($id);
+        
+        // Return error if not found
+        if (!$abbreviation) {
+            return response()->json(['message' => 'Abbreviation not found.'], 404);
+        }
+
+        // Return abbreviation details for editing
+        return response()->json(['abbreviation' => $abbreviation], 200);
     }
 
-    public function update(Request $request)
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update(Request $request, $id)
     {
-        $request->validate([
-            'abbreviation' => 'required',
-            'description' => 'required',
+        $Abbreviation = Abbreviation::find($id);
+        if (!$Abbreviation) {
+            return response()->json(['message' => 'Abbreviation not found.'], 404);
+        }
+    
+        // Update Abbreviation details
+        $Abbreviation->update([
+            'abbreviation' => $Abbreviation->abbreviation,
+            'is_sub' => $request->input('is_sub'),
+            'store_code' => $request->input('store_code'),
+            'status' => true,
+            'created_by' => 1, // Adjust based on your user logic
+            'name' => $request->input('name'),
         ]);
-
-        DB::table('abbreviation')->where('id', $request->id)->update([
-            'abbreviation' => $request->abbreviation,
-            'description' => $request->description,
-        ]);
-
-        return redirect('/abbreviation/index');
+    
+        // Return success response
+        return response()->json([
+            'message' => 'Abbreviation updated successfully.',
+            'abbreviation' => $Abbreviation,
+        ], 200);
     }
+    
 
-    public function delete($id)
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function destroy($id)
     {
-        DB::table('abbreviation')->where('id', $id)->delete();
-        return redirect('/abbreviation/index');
+
+        // Find the customer by ID
+        $abbreviation = Abbreviation::find($id);
+
+        // Return error if not found
+        if (!$abbreviation) {
+            return response()->json(['message' => 'Abbreviation not found.'], 404);
+        }
+
+        try {
+            // Soft delete (deactivate) the abbreviation
+            $abbreviation->update(['status' => false]);
+
+            // Return success response
+            return response()->json(['message' => 'Abbreviation deactivated successfully.'], 200);
+        } catch (\Exception $e) {
+            // Return error response on failure
+            return response()->json(['message' => 'Failed to deactivate customer.'], 500);
+        }
     }
 }

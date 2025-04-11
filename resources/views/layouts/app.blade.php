@@ -283,7 +283,7 @@
         }
     </script>
     <!-- BEGIN Page Wrapper -->
-    <div class="page-wrapper">
+    <div class="page-wrapper" >
         <div class="page-inner">
             <!-- BEGIN Left Aside -->
             @include('layouts/leftpanel')

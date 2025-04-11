@@ -5,14 +5,13 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ExitClearanceController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AbbreviationController;
-
 use App\Http\Controllers\MainvaluelistController;
 use App\Http\Controllers\PushExitController;
 use App\Http\Controllers\SocialController;
 use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\StoreController;
-
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -86,15 +85,38 @@ Route::group(['middleware' => ['web']], function () {
     Route::post('/store', [StoreController::class, 'store'])->name('store.store');
     Route::get('/store/{id}/edit', [StoreController::class, 'edit'])->name('store.edit');
     Route::put('/store/{id}', [StoreController::class, 'update'])->name('store.update');
-    Route::delete('/destroyStore/{id}', [StoreController::class, 'destroy'])->name('store.destroy');    #End Contract
+    Route::delete('/destroyStore/{id}/destroy', [StoreController::class, 'destroy'])->name('store.destroy');    #End Contract
+
+    // Abbreviation
 
 
+    Route::get('/abbreviations/index    ', [AbbreviationController::class, 'index'])->name('abbreviations.index');
+    Route::get('/abbreviations/data', [AbbreviationController::class, 'data'])->name('abbreviations.data');
+    Route::get('/abbreviations/create', [AbbreviationController::class, 'create'])->name('abbreviations.create');
+    Route::post('/abbreviations', [AbbreviationController::class, 'store'])->name('abbreviations.store');
+    Route::get('/abbreviations/{id}/edit', [AbbreviationController::class, 'edit'])->name('abbreviations.edit');
+    Route::put('/abbreviations/{id}', [AbbreviationController::class, 'update'])->name('abbreviations.update');
+    Route::delete('/destroyabbreviations/{id}', [AbbreviationController::class, 'destroy'])->name('abbreviations.destroy');    #End Contract
+    
+    
+    // End Abbreviation
 
-    Route::get('/abbreviation/{abbreviation}', [AbbreviationController::class, 'index'])->name('abbreviation.index');
+    // Route::get('/abbreviation/{abbreviation}', [AbbreviationController::class, 'index'])->name('abbreviation.index');
 
-    Route::get('/abbreviation/show/{abbreviation}', [AbbreviationController::class, 'show'])->name('abbreviation.show');
+    // Route::get('/abbreviation/show/{abbreviation}', [AbbreviationController::class, 'show'])->name('abbreviation.show');
 
     #region push to other url
     Route::get('/pushexit/index', [PushExitController::class, 'index']);
     #endregion
+
+
+
+    Route::get('/locations/data', [LocationController::class, 'getLocationsData']);
+    Route::get('/locations/index', [LocationController::class, 'index']);
+
+    Route::post('/location', [LocationController::class, 'store']);
+    Route::get('/location/{id}/edit', [LocationController::class, 'edit']);
+    Route::put('/location/{id}', [LocationController::class, 'update']);
+    Route::delete('/destroyLocation/{id}', [LocationController::class, 'destroy']);
+
 });

@@ -89,22 +89,42 @@
                 <ul>
                     <li name='panelList' data-access-to="Customers-index">
                         <a href="javascript:void(0);" title="User"
-                            data-filter-tags='{"anchor":"miltiple","role":"child"}'
-                            onclick="PanelLinkActive(this);viewIndex('{{ url('customers/index') }}');"
-                            class=" waves-effect waves-themed">
+                           data-filter-tags='{"anchor":"miltiple","role":"child"}'
+                           onclick="PanelLinkActive(this);viewIndex('{{ url('customers/index') }}');"
+                           class="waves-effect waves-themed">
                             <span class="nav-link-text">Customers</span>
                         </a>
-
+                    </li>
+                
+                    <li name='panelList' data-access-to="Stores-index">
                         <a href="javascript:void(0);" title="User"
-                            data-filter-tags='{"anchor":"miltiple","role":"child"}'
-                            onclick="PanelLinkActive(this);viewIndex('{{ url('stores/index') }}');"
-                            class=" waves-effect waves-themed">
+                           data-filter-tags='{"anchor":"miltiple","role":"child"}'
+                           onclick="PanelLinkActive(this);viewIndex('{{ url('stores/index') }}');"
+                           class="waves-effect waves-themed">
                             <span class="nav-link-text">Store</span>
                         </a>
+                    </li>
+                
+                    <li name='panelList' data-access-to="Abbreviations-index">
+                        <a href="javascript:void(0);" title="User"
+                           data-filter-tags='{"anchor":"miltiple","role":"child"}'
+                           onclick="PanelLinkActive(this);viewIndex('{{ url('abbreviations/index') }}');"
+                           class="waves-effect waves-themed">
+                            <span class="nav-link-text">Abbreviations</span>
+                        </a>
+                    </li>
 
+                    <li name='panelList' data-access-to="Location-index">
+                        <a href="javascript:void(0);" title="User"
+                           data-filter-tags='{"anchor":"miltiple","role":"child"}'
+                           onclick="PanelLinkActive(this);viewIndex('{{ url('locations/index') }}');"
+                           class="waves-effect waves-themed">
+                            <span class="nav-link-text">Location</span>
+                        </a>
                     </li>
 
                 </ul>
+                
             </li>
 
             {{-- END Contract --}}

@@ -16,11 +16,11 @@ class Substore extends Model
     protected $fillable = [
         'substore_code',
         'store_code',
-        'abbreviation',
+        'abbreviation_id',
         'name_kh',
         'name_en',
-        'campus',
-        'location',
+        'campus_id',
+        'location_id',
         'status',
     ];
 

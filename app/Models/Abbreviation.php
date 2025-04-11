@@ -15,6 +15,8 @@ class Abbreviation extends Model
         'abbreviation',
         'status',
         'created_by',
+        'name',
+        'store_code'
     ];
 
     // Cast attributes to specific types

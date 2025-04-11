@@ -37,12 +37,12 @@
     </div>
 </div>
 
-<!-- Add/Edit Customer Modal -->
-<div class="modal fade" id="addCustomerModal" tabindex="-1" role="dialog" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
+<!-- Add/Edit store Modal -->
+<div class="modal fade" id="addstoreModal" tabindex="-1" role="dialog" aria-labelledby="addstoreModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addCustomerModalLabel">Store Information</h5>
+                <h5 class="modal-title" id="addstoreModalLabel">Store Information</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -91,7 +91,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="saveCustomerButton">Save</button>
+                <button type="button" class="btn btn-primary" id="savestoreButton">Save</button>
             </div>
         </div>
     </div>
@@ -100,7 +100,7 @@
 <!-- Script -->
 <script>
     
-    function clearAddCustomerModal() {
+    function clearAddstoreModal() {
     $('#storeId').val('');
     $('#name').val('');
     $('#name_kh').val('');
@@ -116,7 +116,7 @@
 
   $(document).ready(function () {
     const csrfToken = $('meta[name="csrf-token"]').attr('content');
-    let customers = []; // Array to store customer data
+    let stores = []; // Array to store store data
 
 
     // Initialize DataTable
@@ -140,19 +140,19 @@
                 text: 'Add New',
                 className: 'btn btn-primary btn-sm mr-1',
                 action: function (e, dt, node, config) {
-                    $('#addCustomerModal #storeId').val('');
-                    $('#addCustomerModal #name').val('');
-                    $('#addCustomerModal #name_kh').val('');
+                    $('#addstoreModal #storeId').val('');
+                    $('#addstoreModal #name').val('');
+                    $('#addstoreModal #name_kh').val('');
                     
-                    $('#addCustomerModal #abbreviation').val('');
-                    $('#addCustomerModal #store_code').val('');
-                    $('#addCustomerModal #campus').val(1); 
-                    $('#addCustomerModal #location').val(1); 
+                    $('#addstoreModal #abbreviation').val('');
+                    $('#addstoreModal #store_code').val('');
+                    $('#addstoreModal #campus').val(1); 
+                    $('#addstoreModal #location').val(1); 
 
-                    $('#addCustomerModal #status').val('true'); 
+                    $('#addstoreModal #status').val('true'); 
 
-                    $('#addCustomerModal #addCustomerModalLabel').text('Add New Store');
-                    $('#addCustomerModal').modal('show');
+                    $('#addstoreModal #addstoreModalLabel').text('Add New Store');
+                    $('#addstoreModal').modal('show');
                 }
             },
             {
@@ -188,11 +188,11 @@
         ]
     });
 
-    // Function to render customer data into the table
-        function renderCustomers(data) {
+    // Function to render store data into the table
+        function renderstores(data) {
             dataTable.clear(); // Clear existing rows
             data.forEach(store => {
-                const statusBadge = `<span class="badge ${store.is_store === 'store' ? 'badge-danger' : 'badge-success'}">${store.is_store === 'store' ? 'Store' : 'Sub Store'}</span>`;
+                const statusBadge = `<span class="badge ${store.type === 'store' ? 'badge-danger' : 'badge-success'}">${store.type === 'store' ? 'Store' : 'Sub Store'}</span>`;
 
 
                 const actions = `
@@ -200,7 +200,7 @@
                             data-id="${store.id}" 
                             data-store-type="${store.is_store}" 
                             data-toggle="modal" 
-                            data-target="#addCustomerModal">
+                            data-target="#addstoreModal">
                         <i class="fa fa-edit"></i> Edit
                     </button>
                     <button class="btn btn-sm btn-danger delete-btn" data-store-type="${store.is_store}" data-id="${store.id}">
@@ -222,13 +222,13 @@
         }
 
 
-function fetchCustomers() {
+function fetchstores() {
     $.ajax({
         url: '/stores/data',
         method: 'GET',
         success: function (response) {
         const stores = response.stores; 
-        renderCustomers(stores); 
+        renderstores(stores); 
 
         // Dropdown elements
         const campusSelect = $('#campus');
@@ -248,18 +248,28 @@ function fetchCustomers() {
         } else {
             console.log("Campus data is not an array:", response.campus);
         }
-        console.log(response.abbreviation);
-        if (Array.isArray(response.abbreviation)) {
-            response.abbreviation.forEach(function(abbreviation) {
-                abbreviationSelect.append(
-                new Option(`${abbreviation.abbreviation} (${abbreviation.name ? 'Store' : 'Sub Store'})`, abbreviation.id)
-            );
-            });
-        } else {
-            console.log("Campus data is not an array:", response.abbreviation);
-        }
 
-        // Populate Location dropdown
+        if (Array.isArray(response.abbreviation)) {
+    response.abbreviation.forEach(function(abbreviation) {
+        // Create the option element
+        const option = document.createElement("option");
+
+        option.textContent = `${abbreviation.name} (${abbreviation.is_sub ? 'Sub Store' : 'Store'})`;
+
+        option.value = abbreviation.id;
+
+        option.setAttribute('data-is_sub', abbreviation.is_sub);
+        option.setAttribute('data-store_code', abbreviation.store_code);
+
+        // Append the option to the select
+        abbreviationSelect.append(option);
+    });
+} else {
+    console.log("Abbreviation data is not an array:", response.abbreviation);
+}
+
+
+
         if (Array.isArray(response.location)) {
             response.location.forEach(function(location) {
                 locationSelect.append(new Option(location.name_en, location.id));
@@ -287,7 +297,7 @@ function fetchCustomers() {
         error: function (xhr, status, error) {
             Swal.fire(
                 'Error!',
-                'Failed to fetch customer data.',
+                'Failed to fetch store data.',
                 'error'
             );
         }
@@ -295,22 +305,24 @@ function fetchCustomers() {
 }
 
 
-    // Initial fetch of customers
-    fetchCustomers();
+    // Initial fetch of stores
+    fetchstores();
 
-    // Save Customer (Add or Update)
-    $(document).on('click', '#saveCustomerButton', function () {
+    // Save store (Add or Update)
+    $(document).on('click', '#savestoreButton', function () {
     const storeId = $('#storeId').val();
     const nameEn = $('#name').val().trim();
     const nameKh = $('#name_kh').val().trim();
     const abbreviation = $('#abbreviation').val().trim();
     const storeCode = $('#store_code').val().trim();
-    const campusId = $('#campus').val(); // Selected campus ID
-    const locationId = $('#location').val(); // Selected location ID
-    const isSub = $('#is_sub').val(); // Store type: 'store' or 'substore'
-    const status = $('#status').val(); // Status: 'true' or 'false'
+    const campusId = $('#campus').val(); 
+    const locationId = $('#location').val(); 
+    const isSub = $('#abbreviation option:selected').data('is_sub');
+    const code = $('#abbreviation option:selected').data('store_code');
+    const status = $('#status').val(); 
 
-    // Basic client-side validation
+
+
     if (!nameEn || !abbreviation || !storeCode || !campusId || !locationId) {
         Swal.fire('Error!', 'Please fill in all required fields.', 'error');
         return;
@@ -325,7 +337,7 @@ function fetchCustomers() {
         method = 'PUT';
     }
 
-    // Send the AJAX request
+        // Send the AJAX request
     $.ajax({
         url: url,
         method: method,
@@ -333,15 +345,16 @@ function fetchCustomers() {
             'X-CSRF-TOKEN': csrfToken
         },
         data: {
-            id: storeId, // Include the store ID for updates
+            id: storeId, 
             name_en: nameEn,
+            code:code ,
             name_kh: nameKh,
-            abbreviation: abbreviation,
+            abbreviation_id: abbreviation,
             store_code: storeCode,
             campus_id: campusId,
             location_id: locationId,
-            is_store: isSub, // Store type: 'store' or 'substore'
-            status: status === 'true' // Convert status to boolean
+            is_store: isSub,
+            status: status === 'true' 
         },
         success: function (response) {
             if (response.message) {
@@ -350,8 +363,8 @@ function fetchCustomers() {
                     storeId ? 'Store updated successfully!' : 'Store added successfully!',
                     'success'
                 ).then(() => {
-                    fetchCustomers(); // Refresh the table with updated data
-                    $('#addCustomerModal').modal('hide'); // Close the modal
+                    fetchstores(); // Refresh the table with updated data
+                    $('#addstoreModal').modal('hide'); // Close the modal
                 });
             } else {
                 Swal.fire(
@@ -374,11 +387,10 @@ function fetchCustomers() {
     // Edit store
     $(document).on('click', '.edit-btn', function () {
     const storeId = $(this).data('id');
-    const storeType = $(this).data('store-type'); // Get storeType from the button's data attribute
-
-    // Send the storeId as part of the URL and storeType as a query string
+    const storeType = $(this).data('store-type'); 
+        
     $.ajax({
-        url: `/store/${storeId}/edit?storeType=${storeType}`, // Query param in the URL
+        url: `/store/${storeId}/edit?storeType=${storeType}`,
         method: 'GET',
         success: function(response) {
             const store = response.store;
@@ -388,7 +400,7 @@ function fetchCustomers() {
 
             $('#name_kh').val(store.name_kh); 
 
-            $('#abbreviation').val(store.abbreviation); 
+            $('#abbreviation').val(store.abbreviation_id); 
 
             $('#store_code').val(store.store_code); 
 
@@ -407,11 +419,12 @@ function fetchCustomers() {
 });
 
 
-    // Delete Customer
     $(document).on('click', '.delete-btn', function () {
-        const customerId = $(this).data('id');
+        const storeId = $(this).data('id');
+        const storeType = $(this).data('store-type'); 
+
         Swal.fire({
-            title: `Are you sure to delete customer with id ${customerId}?`,
+            title: `Are you sure to delete Store with id ${storeId}?`,
             text: "You won't be able to revert this!",
             icon: "warning",
             showCancelButton: true,
@@ -419,9 +432,9 @@ function fetchCustomers() {
             cancelButtonText: "No, cancel!",
             reverseButtons: true
         }).then((result) => {
-            if (result.draw) {
+            if (result.value) {
                 $.ajax({
-                    url: `/destroyCustomer/${customerId}`,
+                    url: `/destroyStore/${storeId}/destroy?storeType=${storeType}`,
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': csrfToken
@@ -429,16 +442,16 @@ function fetchCustomers() {
                     success: function (response) {
                         Swal.fire(
                             'Deleted!',
-                            'The customer has been deactivated.',
+                            'The Store has been deactivated.',
                             'success'
                         ).then(() => {
-                            fetchCustomers(); // Refresh the table after successful deletion
+                            fetchstores(); // Refresh the table after successful deletion
                         });
                     },
                     error: function (xhr, status, error) {
                         Swal.fire(
                             'Error!',
-                            'Failed to deactivate customer.',
+                            'Failed to deactivate Store.',
                             'error'
                         );
                     }
