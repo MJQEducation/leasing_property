@@ -219,7 +219,7 @@
         function renderstores(data) {
             dataTable.clear(); // Clear existing rows
             data.forEach(store => {
-                const statusBadge = `<span class="badge ${store.type === 'store' ? 'badge-danger' : 'badge-success'}">${store.type === 'store' ? 'Store' : 'Sub Store'}</span>`;
+                const statusBadge = `<span class="badge ${store.type === 'store' ? 'badge-danger' : 'badge-success'}">${store.type === 'store' ? 'Business Entity' : 'Store'}</span>`;
 
 
                 const actions = `

@@ -42,6 +42,8 @@ class StoreController extends Controller
             a.abbreviation,
             stores.name_kh,
             stores.name_en,
+            'N/A' AS campus,
+            'N/A' AS location,
             true AS is_store,
             stores.created_at,
             stores.updated_at,
@@ -59,7 +61,8 @@ class StoreController extends Controller
             a.abbreviation,
             substore.name_kh,
             substore.name_en,
-            
+            c.name_en AS campus,
+            l.name_en AS location,
             false AS is_store,
             substore.created_at,
             substore.updated_at,
