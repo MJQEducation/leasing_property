@@ -6,7 +6,7 @@ use App\Helper\RBAC;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
-use App\Models\Store;
+use App\Models\business_entity;
 use App\Models\Substore;
 
 
@@ -48,7 +48,7 @@ class StoreController extends Controller
             stores.created_at,
             stores.updated_at,
             'store' AS type
-        FROM stores
+        FROM business_entity as stores
         JOIN campus c ON stores.campus_id = c.id
         JOIN location l ON stores.location_id = l.id
         JOIN abbreviations a ON a.id = stores.abbreviation_id::BIGINT
@@ -70,7 +70,7 @@ class StoreController extends Controller
             substore.created_at,
             substore.updated_at,
             'substore' AS type
-        FROM substore
+        FROM store as substore
         JOIN campus c ON substore.campus_id = c.id
         JOIN location l ON substore.location_id = l.id
         JOIN abbreviations a ON a.id = substore.abbreviation_id::BIGINT
@@ -131,7 +131,7 @@ class StoreController extends Controller
     
         if ($is_store == 'true') {
 
-            $substore = Substore::create([
+            $substore = store::create([
                 'store_code' => $code,
                 'name_en' => $name_en,
                 'name_kh' => $name_kh,
@@ -149,7 +149,7 @@ class StoreController extends Controller
                 'store' => $substore,
             ], 201);
         } else {
-            $store = Store::create([
+            $store = business_entity::create([
                 'store_code' => $store_code,
                 'name_en' => $name_en,
                 'name_kh' => $name_kh,
@@ -175,7 +175,7 @@ class StoreController extends Controller
         $store = DB::table('Store')->where('id', $id)->first();
 
         if (!$store) {
-            $store = DB::table('substore')->where('id', $id)->first();
+            $store = DB::table('store')->where('id', $id)->first();
             if (!$store) {
                 return response()->json(['message' => 'Store not found.'], 404);
             }
@@ -190,9 +190,9 @@ class StoreController extends Controller
     $storeType = request()->query('storeType'); 
 
     if ($storeType === 'true') {
-        $store = DB::table('stores')->where('id', $id)->first();
+        $store = DB::table('business_entity')->where('id', $id)->first();
     } else {
-        $store = DB::table('substore')->where('id', $id)->first();
+        $store = DB::table('store')->where('id', $id)->first();
     }
 
     return response()->json(['store' => $store]);
@@ -201,11 +201,11 @@ class StoreController extends Controller
 
     public function update(Request $request, $id)
     {
-        $store = DB::table('stores')->where('id', $id);
+        $store = DB::table('business_entity')->where('id', $id);
         $isMain = true;
 
         if (!$store->exists()) {
-            $store = DB::table('substore')->where('id', $id);
+            $store = DB::table('store')->where('id', $id);
             $isMain = false;
 
             if (!$store->exists()) {
@@ -222,7 +222,7 @@ class StoreController extends Controller
             'location' => 'nullable|string|max:255',
         ]);
 
-        $table = $isMain ? 'stores' : 'substore';
+        $table = $isMain ? 'stores' : 'store';
 
         DB::table($table)->where('id', $id)->update(array_merge($validated, [
             'updated_at' => now()
@@ -241,11 +241,11 @@ class StoreController extends Controller
         $storeType = request()->query('storeType'); 
     
         if ($storeType === 'true') {
-            DB::table('stores')
+            DB::table('business_entity')
                 ->where('id', $id)
                 ->update(['status' => false]);
         } else {
-            DB::table('substore')
+            DB::table('store')
                 ->where('id', $id)
                 ->update(['status' => false]);
         }

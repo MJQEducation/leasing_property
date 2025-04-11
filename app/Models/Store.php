@@ -5,24 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Store extends Model
+class store extends Model
 {
     use HasFactory;
-    protected $table = 'stores';
+
+    protected $table = 'store';
 
     protected $primaryKey = 'id';
 
-    public $incrementing = true;
-
     protected $fillable = [
-        'store_code',
-        'campus_id',
-        'location_id',
-        'status',
+        'substore_code',
         'abbreviation_id',
         'name_kh',
         'name_en',
-        'is_sub'
-
+        'campus_id',
+        'location_id',
+        'status',
     ];
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class, 'store_code', 'store_code');
+    }
 }

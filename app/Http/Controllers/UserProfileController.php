@@ -30,10 +30,9 @@ class UserProfileController extends Controller
         SELECT a.abbreviation,
         MIN(s.name_en) AS name_en,
         COUNT(a.abbreviation) AS abbreviation_count
-        FROM stores AS s
+        FROM business_entity AS s
         JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT
         WHERE s.status = true
-        AND s.is_sub=false
         AND a.abbreviation != \'sub\'
         GROUP BY a.abbreviation
  
@@ -43,7 +42,7 @@ class UserProfileController extends Controller
         SELECT \'sub\' AS abbreviation,
                \'RETAIL F&B\' AS name_en,
                COUNT(id) AS abbreviation_count
-        FROM substore
+        FROM store
         WHERE status = true;
     ');
 
@@ -53,7 +52,7 @@ class UserProfileController extends Controller
     SELECT abb.abbreviation,
         MIN(ss.name_en) AS name_en,
         COUNT(abb.abbreviation) AS abbreviation_count
-        FROM substore AS ss
+        FROM store AS ss
         JOIN abbreviations abb ON abb.id = ss.abbreviation_id::BIGINT
         WHERE ss.status = true
         GROUP BY abb.abbreviation;
@@ -71,14 +70,14 @@ class UserProfileController extends Controller
              FROM payments
 
              JOIN public.leasings l ON l.id = payments.leasing_id
-             LEFT JOIN public.stores s ON l.store_code = s.store_code
+             LEFT JOIN public.business_entity s ON l.store_code = s.store_code
              JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT
              WHERE a.abbreviation IS NULL), 0
         ) AS Retail_amount_paid,
 
         -- Building Counts & Amount Paid
-        (SELECT COUNT(*) FROM stores AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT WHERE a.abbreviation = 'bu' AND s.status = '1') AS Building,
-        (SELECT COUNT(*) FROM stores AS s 
+        (SELECT COUNT(*) FROM business_entity AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT WHERE a.abbreviation = 'bu' AND s.status = '1') AS Building,
+        (SELECT COUNT(*) FROM business_entity AS s 
          JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT
          JOIN contracts AS c ON c.store_code = s.store_code 
          WHERE a.abbreviation = 'bu' AND s.status = '1') AS Building_Leaseout,
@@ -87,16 +86,16 @@ class UserProfileController extends Controller
              FROM payments AS p
              JOIN leasings AS l ON l.id = p.leasing_id
              JOIN contracts AS c ON c.id = l.contract_id
-             LEFT JOIN stores AS s ON s.store_code = c.store_code
+             LEFT JOIN business_entity AS s ON s.store_code = c.store_code
              JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT
-             LEFT JOIN substore AS ss ON ss.substore_code = c.store_code
+             LEFT JOIN store AS ss ON ss.substore_code = c.store_code
              JOIN abbreviations abb ON abb.id = ss.abbreviation_id::BIGINT
              WHERE COALESCE(a.abbreviation, abb.abbreviation) = 'SM'), 0
         ) AS Building_amount_paid,
 
         -- Land Counts & Amount Paid
-        (SELECT COUNT(*) FROM stores AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT WHERE a.abbreviation = 'land' AND s.status = '1') AS Land,
-        (SELECT COUNT(*) FROM stores AS s 
+        (SELECT COUNT(*) FROM business_entity AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT WHERE a.abbreviation = 'land' AND s.status = '1') AS Land,
+        (SELECT COUNT(*) FROM business_entity AS s 
          JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT
          JOIN contracts AS c ON c.store_code = s.store_code 
          WHERE a.abbreviation = 'land' AND s.status = '1') AS Land_Leaseout,
@@ -105,16 +104,16 @@ class UserProfileController extends Controller
              FROM payments AS p
              JOIN leasings AS l ON l.id = p.leasing_id
              JOIN contracts AS c ON c.id = l.contract_id
-             LEFT JOIN stores AS s ON s.store_code = c.store_code
+             LEFT JOIN business_entity AS s ON s.store_code = c.store_code
              JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT
-             LEFT JOIN substore AS ss ON ss.substore_code = c.store_code
+             LEFT JOIN store AS ss ON ss.substore_code = c.store_code
              JOIN abbreviations abb ON abb.id = ss.abbreviation_id::BIGINT
              WHERE COALESCE(a.abbreviation, abb.abbreviation) = 'land'), 0
         ) AS Land_amount_paid,
 
         -- MJQ Counts & Amount Paid
-        (SELECT COUNT(*) FROM stores AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT WHERE a.abbreviation = 'mjq' AND s.status = '1') AS MJQ,
-        (SELECT COUNT(*) FROM stores AS s 
+        (SELECT COUNT(*) FROM business_entity AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT WHERE a.abbreviation = 'mjq' AND s.status = '1') AS MJQ,
+        (SELECT COUNT(*) FROM business_entity AS s 
          JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT
          JOIN contracts AS c ON c.store_code = s.store_code 
          WHERE a.abbreviation = 'mjq' AND s.status = '1') AS MJQ_Leaseout,
@@ -123,14 +122,14 @@ class UserProfileController extends Controller
              FROM payments AS p
              JOIN leasings AS l ON l.id = p.leasing_id
              JOIN contracts AS c ON c.id = l.contract_id
-             LEFT JOIN stores AS s ON s.store_code = c.store_code
+             LEFT JOIN business_entity AS s ON s.store_code = c.store_code
              JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT
-             LEFT JOIN substore AS ss ON ss.substore_code = c.store_code
+             LEFT JOIN store AS ss ON ss.substore_code = c.store_code
              JOIN abbreviations abb ON abb.id = ss.abbreviation_id::BIGINT
              WHERE COALESCE(a.abbreviation, abb.abbreviation) = 'mjq'), 0
         ) AS MJQ_amount_paid
 
-    FROM substore AS ss
+    FROM store AS ss
     LEFT JOIN contracts AS c ON c.store_code = ss.substore_code
     WHERE ss.status = '1';
 ");
@@ -152,7 +151,7 @@ class UserProfileController extends Controller
 
         COUNT(DISTINCT CASE WHEN abb.abbreviation = 'OSR' THEN ss.id END) AS \"OSR\",
         COUNT(DISTINCT CASE WHEN abb.abbreviation = 'OSR' AND c.store_code IS NOT NULL THEN c.store_code END) AS \"Retail_LeaseOut_OSR\"
-    FROM substore AS ss
+    FROM store AS ss
     JOIN abbreviations abb ON abb.id = ss.abbreviation_id::BIGINT
     LEFT JOIN contracts AS c ON c.store_code = ss.substore_code
     WHERE ss.status = '1';
@@ -189,8 +188,8 @@ class UserProfileController extends Controller
 
     $totalPropResult = DB::select("
         SELECT 
-        (SELECT COUNT(DISTINCT a.abbreviation) FROM stores s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT WHERE s.is_sub = false) +
-        (SELECT COUNT(DISTINCT abb.abbreviation) FROM substore ss JOIN abbreviations abb ON abb.id = ss.abbreviation_id::BIGINT) 
+        (SELECT COUNT(DISTINCT a.abbreviation) FROM business_entity s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT) +
+        (SELECT COUNT(DISTINCT abb.abbreviation) FROM store ss JOIN abbreviations abb ON abb.id = ss.abbreviation_id::BIGINT) 
         AS totalProperty
     ");
     $totalProp = $totalPropResult[0]->totalproperty ?? 0;
@@ -218,7 +217,7 @@ $thismonthrevenue = $thismonth[0]->total_payment ?? 0;
         SELECT s.name_en AS store_name, p.payment_date, p.final_charge,p2.estimated_income
         FROM payments p
         LEFT JOIN leasings l ON l.id = p.leasing_id
-        INNER JOIN stores s ON l.store_code = s.store_code
+        INNER JOIN business_entity s ON l.store_code = s.store_code
         join projection p2 on l.contract_id = p2.contract_id and p2.projection_date=l.alert_date
 
 
@@ -227,7 +226,7 @@ $thismonthrevenue = $thismonth[0]->total_payment ?? 0;
         SELECT s2.name_en AS store_name, p.payment_date, p.final_charge,p2.estimated_income
         FROM payments p
         LEFT JOIN leasings l ON l.id = p.leasing_id
-        INNER JOIN substore s2 ON l.store_code = s2.substore_code
+        INNER JOIN store s2 ON l.store_code = s2.substore_code
         join projection p2 on l.contract_id = p2.contract_id and p2.projection_date=l.alert_date
 
     ");
@@ -237,7 +236,7 @@ $thismonthrevenue = $thismonth[0]->total_payment ?? 0;
                 SELECT s.name_en AS store_name, p.payment_date, p.final_charge,p2.estimated_income
         FROM payments p
         LEFT JOIN leasings l ON l.id = p.leasing_id
-        INNER JOIN stores s ON l.store_code = s.store_code
+        INNER JOIN business_entity s ON l.store_code = s.store_code
         join projection p2 on l.contract_id = p2.contract_id and p2.projection_date=l.alert_date
         WHERE p.payment_date >= date_trunc('month', current_date - interval '1' month)
         AND p.payment_date < date_trunc('month', current_date)
@@ -248,7 +247,7 @@ $thismonthrevenue = $thismonth[0]->total_payment ?? 0;
         SELECT s2.name_en AS store_name, p.payment_date, p.final_charge,p2.estimated_income
         FROM payments p
         LEFT JOIN leasings l ON l.id = p.leasing_id
-        INNER JOIN substore s2 ON l.store_code = s2.substore_code
+        INNER JOIN store s2 ON l.store_code = s2.substore_code
         join projection p2 on l.contract_id = p2.contract_id and p2.projection_date=l.alert_date
         WHERE p.payment_date >= date_trunc('month', current_date - interval '1' month)
         AND p.payment_date < date_trunc('month', current_date)
@@ -274,12 +273,11 @@ $thismonthrevenue = $thismonth[0]->total_payment ?? 0;
 
         $data = DB::select('
         SELECT a.abbreviation,
-               MIN(s.name_en) AS name_en,
+               MIN(be.name_en) AS name_en,
                COUNT(a.abbreviation) AS abbreviation_count
-        FROM stores AS s
-        JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT
-        WHERE s.status = true
-        AND s.is_sub = false
+        FROM business_entity AS be
+        JOIN abbreviations a ON a.id = be.abbreviation_id::BIGINT
+        WHERE be.status = true
         AND a.abbreviation != \'sub\'
         GROUP BY a.abbreviation
         
@@ -288,7 +286,7 @@ $thismonthrevenue = $thismonth[0]->total_payment ?? 0;
         SELECT \'sub\' AS abbreviation,
                \'RETAIL F&B\' AS name_en,
                COUNT(ss.id) AS abbreviation_count
-        FROM substore ss
+        FROM store ss
         JOIN abbreviations abb ON abb.id = ss.abbreviation_id::BIGINT
         WHERE ss.status = true
         GROUP BY abb.abbreviation
@@ -301,7 +299,7 @@ $thismonthrevenue = $thismonth[0]->total_payment ?? 0;
     SELECT a.abbreviation,
         MIN(ss.name_en) AS name_en,
         COUNT(a.abbreviation) AS abbreviation_count
-        FROM substore AS ss
+        FROM store AS ss
         JOIN abbreviations a ON a.id = ss.abbreviation_id::BIGINT
         WHERE ss.status = true
         GROUP BY a.abbreviation;
@@ -312,13 +310,13 @@ $thismonthrevenue = $thismonth[0]->total_payment ?? 0;
 SELECT
     COUNT(DISTINCT ss.id) AS Retail,
     COUNT(DISTINCT c.store_code) AS Retail_LeaseOut,
-    (SELECT COUNT(*) FROM stores AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT WHERE a.abbreviation = 'bu' AND s.status = '1') AS Building,
-    (SELECT COUNT(*) FROM stores AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT JOIN contracts AS c ON c.store_code = s.store_code WHERE a.abbreviation = 'bu' AND s.status = '1') AS Building_Leaseout,
-    (SELECT COUNT(*) FROM stores AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT WHERE a.abbreviation = 'land' AND s.status = '1') AS Land,
-    (SELECT COUNT(*) FROM stores AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT JOIN contracts AS c ON c.store_code = s.store_code WHERE a.abbreviation = 'land' AND s.status = '1') AS Land_Leaseout,
-    (SELECT COUNT(*) FROM stores AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT WHERE a.abbreviation = 'mjq' AND s.status = '1') AS MJQ,
-    (SELECT COUNT(*) FROM stores AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT JOIN contracts AS c ON c.store_code = s.store_code WHERE a.abbreviation = 'mjq' AND s.status = '1') AS MJQ_Leaseout
-FROM substore AS ss
+    (SELECT COUNT(*) FROM business_entity AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT WHERE a.abbreviation = 'bu' AND s.status = '1') AS Building,
+    (SELECT COUNT(*) FROM business_entity AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT JOIN contracts AS c ON c.store_code = s.store_code WHERE a.abbreviation = 'bu' AND s.status = '1') AS Building_Leaseout,
+    (SELECT COUNT(*) FROM business_entity AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT WHERE a.abbreviation = 'land' AND s.status = '1') AS Land,
+    (SELECT COUNT(*) FROM business_entity AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT JOIN contracts AS c ON c.store_code = s.store_code WHERE a.abbreviation = 'land' AND s.status = '1') AS Land_Leaseout,
+    (SELECT COUNT(*) FROM business_entity AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT WHERE a.abbreviation = 'mjq' AND s.status = '1') AS MJQ,
+    (SELECT COUNT(*) FROM business_entity AS s JOIN abbreviations a ON a.id = s.abbreviation_id::BIGINT JOIN contracts AS c ON c.store_code = s.store_code WHERE a.abbreviation = 'mjq' AND s.status = '1') AS MJQ_Leaseout
+FROM store AS ss
 LEFT JOIN contracts AS c ON c.store_code = ss.substore_code
 AND ss.status = '1';
 ");
@@ -344,7 +342,7 @@ AND ss.status = '1';
 
         COUNT(DISTINCT CASE WHEN abb.abbreviation = 'OSR' THEN ss.id END) AS \"OSR\",
         COUNT(DISTINCT CASE WHEN abb.abbreviation = 'OSR' AND c.store_code IS NOT NULL THEN c.store_code END) AS \"Retail_LeaseOut_OSR\"
-    FROM substore AS ss
+    FROM store AS ss
     JOIN abbreviations abb ON abb.id = ss.abbreviation_id::BIGINT
     LEFT JOIN contracts AS c ON c.store_code = ss.substore_code
     WHERE ss.status = '1';

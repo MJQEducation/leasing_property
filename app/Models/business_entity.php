@@ -5,27 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Substore extends Model
+class business_entity extends Model
 {
     use HasFactory;
-
-    protected $table = 'substore';
+    protected $table = 'business_entity';
 
     protected $primaryKey = 'id';
 
+    public $incrementing = true;
+
     protected $fillable = [
-        'substore_code',
         'store_code',
-        'abbreviation_id',
-        'name_kh',
-        'name_en',
         'campus_id',
         'location_id',
         'status',
-    ];
+        'abbreviation_id',
+        'name_kh',
+        'name_en',
+        'is_sub'
 
-    public function store()
-    {
-        return $this->belongsTo(Store::class, 'store_code', 'store_code');
-    }
+    ];
 }

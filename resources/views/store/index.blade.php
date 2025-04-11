@@ -80,6 +80,19 @@
                     </select>
                 </div>
                 
+
+                <div class="form-group">
+                    <label for="substore">Is SubStore</label>
+                    <label class="switch">
+                        <input type="checkbox" id="substore">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="form-group" id="store_code_group" style="display: none;">
+                    <label for="store_code">Store Code</label>
+                    <input type="text" class="form-control" id="store_code" placeholder="Enter store code" required>
+                </div>
+                
                 {{-- <div class="form-group">
                     <label for="is_sub">Store Type</label>
                     <select class="form-control" id="is_sub">
@@ -99,6 +112,19 @@
 
 <!-- Script -->
 <script>
+    
+    $(document).ready(function () {
+        document.getElementById('substore').addEventListener('change', function() {
+        var storeCodeGroup = document.getElementById('store_code_group');
+        if (this.checked) {
+            // If checked, show the store_code input
+            storeCodeGroup.style.display = 'block';
+        } else {
+            // If unchecked, hide the store_code input
+            storeCodeGroup.style.display = 'none';
+        }
+        });
+    });
     
     function clearAddstoreModal() {
     $('#storeId').val('');
@@ -143,7 +169,8 @@
                     $('#addstoreModal #storeId').val('');
                     $('#addstoreModal #name').val('');
                     $('#addstoreModal #name_kh').val('');
-                    
+                    $('#addabbreviationsModal #substore').prop('checked', false);
+                    $('#addabbreviationsModal #store_code').val('');
                     $('#addstoreModal #abbreviation').val('');
                     $('#addstoreModal #store_code').val('');
                     $('#addstoreModal #campus').val(1); 
@@ -311,10 +338,18 @@ function fetchstores() {
     // Save store (Add or Update)
     $(document).on('click', '#savestoreButton', function () {
     const storeId = $('#storeId').val();
-    const nameEn = $('#name').val().trim();
-    const nameKh = $('#name_kh').val().trim();
-    const abbreviation = $('#abbreviation').val().trim();
-    const storeCode = $('#store_code').val().trim();
+    const nameEn = $('#name').val();
+    const nameKh = $('#name_kh').val();
+    const abbreviation = $('#abbreviation').val();
+    const store_code = $('#store_code').val();
+        let substore = $('#substore').prop('checked'); 
+      
+        if (substore) {
+            substore = true; 
+        } else {
+            substore = false; 
+        }
+    const storeCode = $('#store_code').val();
     const campusId = $('#campus').val(); 
     const locationId = $('#location').val(); 
     const isSub = $('#abbreviation option:selected').data('is_sub');
