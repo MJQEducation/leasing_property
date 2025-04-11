@@ -14,7 +14,7 @@
             <div class="panel-container show">
                 <div class="panel-content">
                     <!-- Table -->
-                    <table class="table table-bordered" id="campusTable">
+                    <table class="table table-bordered text-center" id="campusTable">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -75,11 +75,6 @@
         </form>
     </div>
 </div>
-<!-- SweetAlert2 CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-
-<!-- SweetAlert2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function () {
         const csrfToken = $('meta[name="csrf-token"]').attr('content'); // Fetch CSRF token
@@ -145,7 +140,10 @@
             serverSide: true,
             ajax: {
                 url: '/campuses/data',
-                type: 'GET'
+                type: 'GET',
+                error: function (xhr) {
+                    Swal.fire('Error!', 'Failed to load data. Please try again.', 'error');
+                }
             },
             columns: [
                 { data: 'id', name: 'id' },
@@ -173,13 +171,14 @@
                 url: '/campus',
                 type: 'POST',
                 data: $(this).serialize(),
-                success: function () {
+                success: function (response) {
                     $('#createModal').modal('hide');
                     $('#createForm')[0].reset();
                     dataTable.ajax.reload(); // Reload the DataTable after adding
+                    Swal.fire('Success!', 'Campus created successfully.', 'success');
                 },
                 error: function (xhr) {
-                    alert(`Error: ${xhr.responseJSON.message}`);
+                    Swal.fire('Error!', xhr.responseJSON.message || 'Something went wrong.', 'error');
                 }
             });
         });
@@ -193,7 +192,7 @@
                 $('#editNameKh').val(res.campus.name_kh);
                 $('#editModal').modal('show');
             }).fail(function (xhr) {
-                alert(`Error: ${xhr.responseJSON.message}`);
+                Swal.fire('Error!', xhr.responseJSON.message || 'Failed to fetch campus details.', 'error');
             });
         });
     
@@ -205,12 +204,13 @@
                 url: `/campus/${id}`,
                 type: 'PUT',
                 data: $(this).serialize(),
-                success: function () {
+                success: function (response) {
                     $('#editModal').modal('hide');
                     dataTable.ajax.reload(); // Reload the DataTable after updating
+                    Swal.fire('Success!', 'Campus updated successfully.', 'success');
                 },
                 error: function (xhr) {
-                    alert(`Error: ${xhr.responseJSON.message}`);
+                    Swal.fire('Error!', xhr.responseJSON.message || 'Something went wrong.', 'error');
                 }
             });
         });
@@ -218,19 +218,31 @@
         // Handle click on "Delete" button
         $(document).on('click', '.deleteBtn', function () {
             const id = $(this).data('id');
-            if (confirm('Are you sure to delete this campus?')) {
-                $.ajax({
-                    url: `/destroyCampus/${id}`,
-                    type: 'DELETE',
-                    headers: { 'X-CSRF-TOKEN': csrfToken },
-                    success: function () {
-                        dataTable.ajax.reload(); 
-                    },
-                    error: function (xhr) {
-                        alert(`Error: ${xhr.responseJSON.message}`);
-                    }
-                });
-            }
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'You will not be able to recover this campus!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/destroyCampus/${id}`,
+                        type: 'DELETE',
+                        headers: { 'X-CSRF-TOKEN': csrfToken },
+                        success: function () {
+                            Swal.fire('Deleted!', 'Campus has been deleted.', 'success').then(() => {
+                                dataTable.ajax.reload(); // Reload the DataTable after deletion
+                            });
+                        },
+                        error: function (xhr) {
+                            Swal.fire('Error!', xhr.responseJSON.message || 'Something went wrong.', 'error');
+                        }
+                    });
+                }
+            });
         });
     });
     </script>

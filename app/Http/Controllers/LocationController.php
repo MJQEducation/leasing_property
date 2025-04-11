@@ -23,11 +23,39 @@ class LocationController extends Controller
         return view('Location.index');
     }
 
-    public function getLocationsData()
-    {
-        $locations = DB::select("SELECT * FROM location WHERE status = true");
-        return response()->json(['locations' => $locations]);
+    public function getLocationsData(Request $request)
+{
+    // Columns to query
+    $columns = ['id', 'name_en', 'name_kh', 'status'];
+
+    // Base query
+    $query = DB::table('location')->where('status', true);
+
+    // Apply search filter
+    if ($request->has('search') && !empty($request->input('search')['value'])) {
+        $search = $request->input('search')['value'];
+        $query->where(function ($q) use ($search) {
+            $q->where('name_en', 'like', "%{$search}%")
+              ->orWhere('name_kh', 'like', "%{$search}%");
+        });
     }
+
+    // Total records (before filtering)
+    $totalRecords = $query->count();
+
+    // Apply pagination
+    $limit = $request->input('length'); // Number of rows per page
+    $offset = $request->input('start'); // Offset for pagination
+    $locations = $query->skip($offset)->take($limit)->get();
+
+    // Prepare response
+    return response()->json([
+        'draw' => intval($request->input('draw')), // Draw counter
+        'recordsTotal' => $totalRecords,          // Total records
+        'recordsFiltered' => $totalRecords,       // Filtered records
+        'data' => $locations                      // Data for the current page
+    ], 200, [], JSON_UNESCAPED_UNICODE); // Use JSON_UNESCAPED_UNICODE
+}
     public function store(Request $request)
     {
         $request->validate([
