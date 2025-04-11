@@ -39,15 +39,13 @@
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title">Add Campus</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="text" name="name_en" class="form-control mb-2" placeholder="Name (EN)" required>
                 <input type="text" name="name_kh" class="form-control mb-2" placeholder="Name (KH)" required>
             </div>
             <div class="modal-footer">
-                <button type="submit" class="btn btn-success">Save</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" style="background-color: #7a59ad;color:white;border:none" class="btn btn-success">Save</button>
             </div>
         </form>
     </div>
@@ -62,7 +60,7 @@
             <input type="hidden" name="id" id="editId">
             <div class="modal-header">
                 <h5 class="modal-title">Edit Campus</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              
             </div>
             <div class="modal-body">
                 <input type="text" name="name_en" id="editNameEn" class="form-control mb-2" required>

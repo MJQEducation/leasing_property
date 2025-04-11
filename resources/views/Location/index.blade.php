@@ -44,7 +44,6 @@
           @csrf
           <div class="modal-header">
               <h5 class="modal-title" id="addLocationModalLabel">Add Location</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
               <input type="hidden" name="id" id="locationId">
@@ -58,8 +57,7 @@
               </div>
           </div>
           <div class="modal-footer">
-              <button type="submit" class="btn btn-primary">Save</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="submit" style="background-color: #7a59ad;color:white" class="btn btn-primary">Save</button>
           </div>
       </form>
   </div>
