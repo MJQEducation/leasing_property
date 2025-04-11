@@ -42,19 +42,14 @@ class StoreController extends Controller
             a.abbreviation,
             stores.name_kh,
             stores.name_en,
-            c.name_en AS campus,
-            l.name_en AS location,
             true AS is_store,
             stores.created_at,
             stores.updated_at,
             'store' AS type
         FROM business_entity as stores
-        JOIN campus c ON stores.campus_id = c.id
-        JOIN location l ON stores.location_id = l.id
         JOIN abbreviations a ON a.id = stores.abbreviation_id::BIGINT
         WHERE stores.status IS TRUE 
-          AND l.status IS TRUE 
-          AND c.status IS TRUE
+
     
         UNION
     
@@ -64,8 +59,7 @@ class StoreController extends Controller
             a.abbreviation,
             substore.name_kh,
             substore.name_en,
-            c.name_en AS campus,
-            l.name_en AS location,
+            
             false AS is_store,
             substore.created_at,
             substore.updated_at,
@@ -154,8 +148,6 @@ class StoreController extends Controller
                 'name_en' => $name_en,
                 'name_kh' => $name_kh,
                 'abbreviation_id' => $abbreviation,
-                'campus' => $campus_id,
-                'location' => $location_id,
                 'status' => true,
                 'is_sub' => false,
                 'created_at' => now(),
