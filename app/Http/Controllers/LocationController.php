@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use App\Helper\RBAC;
-
+use Illuminate\Support\Facades\Session;
 class LocationController extends Controller
 {
     public function index()
@@ -28,20 +28,22 @@ class LocationController extends Controller
         $locations = DB::select("SELECT * FROM location WHERE status = true");
         return response()->json(['locations' => $locations]);
     }
-
     public function store(Request $request)
     {
         $request->validate([
             'name_en' => 'required',
             'name_kh' => 'required',
         ]);
+    
+        $userID=Session::get('userid');
+        $name=Session::get('name');
 
         DB::insert(
-            "INSERT INTO location (name_en, name_kh, created_by, status, created_at, updated_at) VALUES (?, ?, ?, 1, NOW(), NOW())",
-            [$request->name_en, $request->name_kh, Auth::id()]
+            "INSERT INTO location (name_en, name_kh, created_by,status, created_at, updated_at) VALUES (?, ?, ?, true, NOW(), NOW())",
+            [$request->name_en, $request->name_kh, $userID]
         );
-
-        return response()->json(['message' => 'Location created successfully']);
+    
+        return response()->json(['message' => 'Location created successfully', 'created_by' => $name]);
     }
 
     public function edit($id)

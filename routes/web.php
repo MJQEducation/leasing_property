@@ -12,6 +12,8 @@ use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\StoreController;
+
+use App\Http\Controllers\CampusController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -118,5 +120,16 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('/location/{id}/edit', [LocationController::class, 'edit']);
     Route::put('/location/{id}', [LocationController::class, 'update']);
     Route::delete('/destroyLocation/{id}', [LocationController::class, 'destroy']);
+
+
+
+
+    Route::get('/campuses/index', [CampusController::class, 'index']);
+    Route::get('/campuses/data', [CampusController::class, 'getCampusesData']);
+
+    Route::post('/campus', [CampusController::class, 'store']);
+    Route::get('/campus/{id}/edit', [CampusController::class, 'edit']);
+    Route::put('/campus/{id}', [CampusController::class, 'update']);
+    Route::delete('/destroyCampus/{id}', [CampusController::class, 'destroy']);
 
 });

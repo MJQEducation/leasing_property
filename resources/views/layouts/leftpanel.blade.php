@@ -123,6 +123,15 @@
                         </a>
                     </li>
 
+                    <li name='panelList' data-access-to="campuses-index">
+                        <a href="javascript:void(0);" title="User"
+                           data-filter-tags='{"anchor":"miltiple","role":"child"}'
+                           onclick="PanelLinkActive(this);viewIndex('{{ url('campuses/index') }}');"
+                           class="waves-effect waves-themed">
+                            <span class="nav-link-text">Campuses</span>
+                        </a>
+                    </li>
+
                 </ul>
                 
             </li>
