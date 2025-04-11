@@ -21,7 +21,7 @@
               <div class="panel-content">
                   <!-- Table -->
                   <table class="table table-bordered text-center" id="locationTable">
-                      <thead>
+                      <thead style="background-color: #7a59ad;color:white">
                           <tr>
                               <th>Name (English)</th>
                               <th>Name (Khmer)</th>

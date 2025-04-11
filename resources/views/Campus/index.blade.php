@@ -15,7 +15,7 @@
                 <div class="panel-content">
                     <!-- Table -->
                     <table class="table table-bordered text-center" id="campusTable">
-                        <thead>
+                        <thead style="background-color: #7a59ad;color:white">
                             <tr>
                                 <th>ID</th>
                                 <th>Name (EN)</th>
